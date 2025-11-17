@@ -1,0 +1,384 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  listarProdutos,
+  criarProduto,
+  atualizarProduto,
+  excluirProduto,
+  alternarAtivo,
+  Produto,
+} from "@/lib/api";
+
+type FormState = {
+  idEditando: number | null;
+  nome: string;
+  tipo_bebida: string;
+  preco_venda: string;
+  marca: string;
+  foto_url: string;
+};
+
+const formStateDefault: FormState = {
+  idEditando: null,
+  nome: "",
+  tipo_bebida: "",
+  preco_venda: "",
+  marca: "",
+  foto_url: "",
+};
+
+export default function GerenciarProdutosPage() {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
+  const [form, setForm] = useState<FormState>(formStateDefault);
+
+  async function carregarProdutos() {
+    try {
+      setLoading(true);
+      const data = await listarProdutos();
+      setProdutos(data);
+      setErro(null);
+    } catch (e) {
+      console.error(e);
+      setErro("Erro ao carregar produtos.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarProdutos();
+  }, []);
+
+  function handleChange(
+    campo: keyof FormState,
+    valor: string | number | null
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      [campo]: valor ?? "",
+    }));
+  }
+
+  function iniciarEdicao(p: Produto) {
+    setForm({
+      idEditando: p.id,
+      nome: p.nome,
+      tipo_bebida: p.tipo_bebida,
+      preco_venda: p.preco_venda.toString().replace(".", ","),
+      marca: p.marca ?? "",
+      foto_url: p.foto_url ?? "",
+    });
+  }
+
+  function limparFormulario() {
+    setForm(formStateDefault);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSalvando(true);
+    setErro(null);
+
+    try {
+      const precoNumber = parseFloat(
+        form.preco_venda.replace(".", "").replace(",", ".")
+      );
+
+      if (isNaN(precoNumber)) {
+        setErro("Preço de venda inválido.");
+        setSalvando(false);
+        return;
+      }
+
+      const payload = {
+        nome: form.nome,
+        tipo_bebida: form.tipo_bebida,
+        preco_venda: precoNumber,
+        marca: form.marca || undefined,
+        foto_url: form.foto_url || undefined,
+        ativo: true,
+      };
+
+      if (form.idEditando === null) {
+        await criarProduto(payload);
+      } else {
+        await atualizarProduto(form.idEditando, payload);
+      }
+
+      await carregarProdutos();
+      limparFormulario();
+    } catch (e) {
+      console.error(e);
+      setErro("Erro ao salvar produto.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function handleExcluir(id: number) {
+    if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+    try {
+      await excluirProduto(id);
+      await carregarProdutos();
+    } catch (e) {
+      console.error(e);
+      setErro("Erro ao excluir produto.");
+    }
+  }
+
+  async function handleToggleAtivo(p: Produto) {
+    try {
+      await alternarAtivo(p.id, !p.ativo);
+      await carregarProdutos();
+    } catch (e) {
+      console.error(e);
+      setErro("Erro ao alterar status do produto.");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
+        {/* HEADER */}
+        <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🍷</span>
+            <div>
+              <h1 className="text-xl font-semibold tracking-wide">
+                Diego's Adega
+              </h1>
+              <p className="text-xs text-zinc-400">
+                Administração de produtos da adega.
+              </p>
+            </div>
+          </div>
+
+          <nav className="flex flex-wrap gap-2 text-xs sm:text-sm">
+            <Link
+              href="/"
+              className="rounded-full border border-amber-500/40 bg-amber-900/20 px-4 py-1.5 font-medium text-amber-100 transition hover:bg-amber-800/50 hover:text-amber-50"
+            >
+              ← Home
+            </Link>
+            <Link
+              href="/produtos"
+              className="rounded-full border border-zinc-600 bg-zinc-900/40 px-4 py-1.5 font-medium text-zinc-100 transition hover:bg-zinc-800/70"
+            >
+              Ver catálogo
+            </Link>
+          </nav>
+        </header>
+
+        <main className="flex flex-1 flex-col gap-6 lg:flex-row">
+          {/* FORMULÁRIO */}
+          <section className="lg:w-1/3">
+            <div className="rounded-2xl border border-amber-900/60 bg-zinc-900/70 p-4 shadow-lg shadow-black/40">
+              <h2 className="mb-3 text-lg font-semibold">
+                {form.idEditando ? "Editar produto" : "Novo produto"}
+              </h2>
+
+              {erro && (
+                <p className="mb-2 text-sm text-red-400">
+                  {erro}
+                </p>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-3 text-sm">
+                <div>
+                  <label className="mb-1 block text-xs text-zinc-300">
+                    Nome
+                  </label>
+                  <input
+                    type="text"
+                    value={form.nome}
+                    onChange={(e) =>
+                      handleChange("nome", e.target.value)
+                    }
+                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs text-zinc-300">
+                    Tipo de bebida
+                  </label>
+                  <input
+                    type="text"
+                    value={form.tipo_bebida}
+                    onChange={(e) =>
+                      handleChange("tipo_bebida", e.target.value)
+                    }
+                    placeholder="Vinho tinto, cerveja, destilado..."
+                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs text-zinc-300">
+                    Marca (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.marca}
+                    onChange={(e) =>
+                      handleChange("marca", e.target.value)
+                    }
+                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs text-zinc-300">
+                    Preço de venda (R$)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.preco_venda}
+                    onChange={(e) =>
+                      handleChange("preco_venda", e.target.value)
+                    }
+                    placeholder="79,90"
+                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs text-zinc-300">
+                    URL da foto (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.foto_url}
+                    onChange={(e) =>
+                      handleChange("foto_url", e.target.value)
+                    }
+                    placeholder="https://..."
+                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={salvando}
+                    className="flex-1 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {salvando
+                      ? "Salvando..."
+                      : form.idEditando
+                      ? "Salvar alterações"
+                      : "Cadastrar"}
+                  </button>
+                  {form.idEditando && (
+                    <button
+                      type="button"
+                      onClick={limparFormulario}
+                      className="rounded-full border border-zinc-600 px-3 py-2 text-xs font-semibold text-zinc-100 transition hover:bg-zinc-800/70"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+          </section>
+
+          {/* LISTA */}
+          <section className="lg:w-2/3">
+            <div className="rounded-2xl border border-amber-900/60 bg-zinc-900/70 p-4 shadow-lg shadow-black/40">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">
+                  Produtos cadastrados
+                </h2>
+                <span className="text-xs text-zinc-400">
+                  Total:{" "}
+                  <span className="font-semibold text-amber-200">
+                    {loading ? "—" : produtos.length}
+                  </span>
+                </span>
+              </div>
+
+              {loading ? (
+                <p className="text-sm text-zinc-300">
+                  Carregando produtos...
+                </p>
+              ) : produtos.length === 0 ? (
+                <p className="text-sm text-zinc-300">
+                  Nenhum produto cadastrado ainda.
+                </p>
+              ) : (
+                <div className="space-y-2 text-xs sm:text-sm">
+                  {produtos.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-500">
+                            #{p.id}
+                          </span>
+                          <span className="font-semibold">
+                            {p.nome}
+                          </span>
+                          {!p.ativo && (
+                            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-zinc-300">
+                              Inativo
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-zinc-400">
+                          {p.tipo_bebida}{" "}
+                          {p.marca ? `• ${p.marca}` : ""}
+                        </p>
+                        <p className="text-[11px] text-emerald-300">
+                          R$ {p.preco_venda.toFixed(2)}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => iniciarEdicao(p)}
+                          className="rounded-full border border-zinc-600 px-3 py-1 text-[11px] font-semibold text-zinc-100 transition hover:bg-zinc-800/80"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAtivo(p)}
+                          className={`rounded-full px-3 py-1 text-[11px] font-semibold transition ${
+                            p.ativo
+                              ? "border border-amber-500/60 text-amber-100 hover:bg-amber-900/50"
+                              : "border border-emerald-500/60 text-emerald-100 hover:bg-emerald-900/40"
+                          }`}
+                        >
+                          {p.ativo ? "Desativar" : "Ativar"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleExcluir(p.id)}
+                          className="rounded-full border border-red-600/70 px-3 py-1 text-[11px] font-semibold text-red-200 transition hover:bg-red-900/50"
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
