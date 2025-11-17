@@ -73,7 +73,7 @@ export default function ProdutosPage() {
               <span className="rounded-full border border-zinc-700 bg-zinc-900/70 px-3 py-1">
                 Total de rótulos:{" "}
                 <span className="font-semibold text-amber-200">
-                  {loading ? "—" : produtos.length}
+                  {loading ? "—" : produtos.filter((p) => p.ativo).length}
                 </span>
               </span>
             </div>

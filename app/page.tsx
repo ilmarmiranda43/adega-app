@@ -1,7 +1,41 @@
-// app/page.tsx
+"use client";
+
+
 import Link from "next/link";
 
+import { useEffect, useState } from "react";
+import {
+  listarProdutos,
+  listarCategorias,
+  type Produto,
+  type Categoria,
+} from "@/lib/api";
+
 export default function Home() {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function carregar() {
+      try {
+        setLoading(true);
+        const [prodData, catData] = await Promise.all([
+          listarProdutos(),
+          listarCategorias(),
+        ]);
+        setProdutos(prodData);
+        setCategorias(catData);
+      } catch (err) {
+        console.error("Erro ao carregar dados do dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregar();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
@@ -46,7 +80,7 @@ export default function Home() {
               {/* Catálogo */}
               <Link
                 href="/produtos"
-                className="inline-flex flex-1 items-center justify-center rounded-full bg-amber-600 px-6 py-3 text-sm font-semibold text-zinc-950 shadow-lg shadow-amber-900/40 transition hover:bg-amber-500"
+                className="btn-primary"
               >
                 Catálogo de Produtos
               </Link>
@@ -54,20 +88,17 @@ export default function Home() {
               {/* Gerenciador (usa o que você já tem em app/produtos/gerenciar) */}
               <Link
                 href="/produtos/gerenciar"
-                className="inline-flex flex-1 items-center justify-center rounded-full border border-amber-500/50 bg-zinc-950/40 px-6 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-900/40"
+                className="btn-primary"
               >
                 Gerenciador da Adega
               </Link>
-            </div>
 
-            {/* Atalho para categorias */}
-            <div className="flex flex-wrap gap-3 text-xs text-zinc-300">
               <Link
                 href="/produtos/categorias"
-                className="inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/60 px-4 py-2 hover:border-amber-500/70 hover:text-amber-200"
+                className="btn-primary"
               >
-                <span>📂</span>
-                <span>Gerenciar categorias de produtos</span>
+                
+                Categorias Produtos
               </Link>
             </div>
 
@@ -97,7 +128,7 @@ export default function Home() {
                   <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
                     <p className="text-xs text-zinc-400">Produtos</p>
                     <p className="mt-2 text-2xl font-semibold text-amber-300">
-                      --
+                      {loading ? "—" : produtos.filter((p) => p.ativo).length}
                     </p>
                     <p className="mt-1 text-[11px] text-zinc-500">
                       Total de rótulos cadastrados.
@@ -107,7 +138,7 @@ export default function Home() {
                   <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
                     <p className="text-xs text-zinc-400">Categorias</p>
                     <p className="mt-2 text-2xl font-semibold text-amber-300">
-                      --
+                      {loading ? "—" : categorias.length}
                     </p>
                     <p className="mt-1 text-[11px] text-zinc-500">
                       Agrupamentos para organizar o catálogo.

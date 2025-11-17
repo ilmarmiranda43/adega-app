@@ -24,3 +24,10 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* globals.css */
+.btn-primary {
+  @apply inline-flex flex-1 items-center justify-center rounded-full
+         bg-amber-600 px-6 py-3 text-sm font-semibold text-zinc-950
+         shadow-lg shadow-amber-900/40 transition hover:bg-amber-500;
+}
