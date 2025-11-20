@@ -1,9 +1,9 @@
 "use client";
 
-
 import Link from "next/link";
-
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import {
   listarProdutos,
   listarCategorias,
@@ -12,12 +12,17 @@ import {
 } from "@/lib/api";
 
 export default function Home() {
+  const router = useRouter();
+
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // controla se já verificamos se o usuário está autenticado
+  const [authChecked, setAuthChecked] = useState(false);
+
   useEffect(() => {
-    async function carregar() {
+    async function carregarDashboard() {
       try {
         setLoading(true);
         const [prodData, catData] = await Promise.all([
@@ -33,9 +38,34 @@ export default function Home() {
       }
     }
 
-    carregar();
-  }, []);
+    // Verifica se existe token no localStorage
+    const token = typeof window !== "undefined"
+      ? localStorage.getItem("adega_token")
+      : null;
 
+    if (!token) {
+      // se não estiver logado, manda para /login e NÃO segue
+      router.replace("/login");
+      return;
+    }
+
+    // se tiver token, podemos carregar o dashboard
+    setAuthChecked(true);
+    carregarDashboard();
+  }, [router]);
+
+  // Enquanto ainda estamos verificando auth, mostra só uma tela de loading
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
+        <p className="text-sm text-zinc-400">
+          Verificando acesso à Diego&apos;s Adega...
+        </p>
+      </div>
+    );
+  }
+
+  // Daqui pra baixo está a SUA tela original, intacta :)
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
@@ -78,26 +108,16 @@ export default function Home() {
             {/* BOTÕES PRINCIPAIS */}
             <div className="flex flex-col gap-3 sm:flex-row">
               {/* Catálogo */}
-              <Link
-                href="/produtos"
-                className="btn-primary"
-              >
+              <Link href="/produtos" className="btn-primary">
                 Catálogo de Produtos
               </Link>
 
-              {/* Gerenciador (usa o que você já tem em app/produtos/gerenciar) */}
-              <Link
-                href="/produtos/gerenciar"
-                className="btn-primary"
-              >
+              {/* Gerenciador */}
+              <Link href="/produtos/gerenciar" className="btn-primary">
                 Gerenciador da Adega
               </Link>
 
-              <Link
-                href="/produtos/categorias"
-                className="btn-primary"
-              >
-                
+              <Link href="/produtos/categorias" className="btn-primary">
                 Categorias Produtos
               </Link>
             </div>
