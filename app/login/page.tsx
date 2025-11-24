@@ -3,11 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { login, salvarSessao, obterUsuarioAtual, limparSessao } from "@/lib/auth";
+import {
+  login,
+  salvarSessao,
+  obterUsuarioAtual,
+  limparSessao,
+} from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const usuarioLogado = typeof window !== "undefined" ? obterUsuarioAtual() : null;
+  const usuarioLogado =
+    typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -22,10 +28,11 @@ export default function LoginPage() {
     try {
       const resp = await login(email, senha);
       salvarSessao(resp);
-      router.push("/produtos/gerenciar");
+      // Depois do login, manda pra home (ou pra /produtos/gerenciar se preferir)
+      router.replace("/");
     } catch (err) {
       console.error(err);
-      setErro("E-mail ou senha inválidos.");
+      setErro("E-mail ou senha inválidos ou erro no servidor.");
     } finally {
       setCarregando(false);
     }
@@ -33,25 +40,8 @@ export default function LoginPage() {
 
   function handleLogout() {
     limparSessao();
-    router.refresh();
-  }
-
-  async function autenticar() {
-    const res = await fetch("http://127.0.0.1:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        email,
-        senha
-        }),
-    });
-
-    const data = await res.json();
-
-    if (data.access_token) {
-        document.cookie = `token=${data.access_token}; path=/;`;
-        window.location.href = "/";
-    }
+    // Evita ficar preso na tela com usuário logado
+    router.replace("/login");
   }
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
@@ -61,7 +51,7 @@ export default function LoginPage() {
             <span className="text-2xl">🍷</span>
             <div>
               <h1 className="text-xl font-semibold tracking-wide">
-                Adega Essentia
+                Adega's Shopping
               </h1>
               <p className="text-xs text-zinc-400">
                 Acesso ao painel administrativo.
@@ -69,12 +59,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <Link
+          {/* <Link
             href="/"
             className="text-xs text-amber-200 hover:text-amber-100 underline"
           >
             ← Voltar para Home
-          </Link>
+          </Link> */}
         </header>
 
         <main className="flex-1">

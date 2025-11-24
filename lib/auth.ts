@@ -13,32 +13,56 @@ export type LoginResponse = {
   user: Usuario;
 };
 
+// Base da API: usa variável de ambiente em produção e localhost em dev
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+// ATENÇÃO:
+// Certifique-se de que o backend espera exatamente estes campos no JSON.
+// Se o FastAPI estiver esperando `username` e `password`, troque aqui.
 export async function login(
   email: string,
   senha: string
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+  const resp = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, senha }),
+    body: JSON.stringify({
+      // Se o backend espera `username` e `password`, faça:
+      // username: email,
+      // password: senha,
+      email,
+      senha,
+    }),
   });
 
-  if (!res.ok) {
-    throw new Error("E-mail ou senha inválidos");
+  // Se der 4xx ou 5xx, lança erro com detalhes
+  if (!resp.ok) {
+    const texto = await resp.text();
+    console.error(
+      "Erro no login:",
+      resp.status,
+      resp.statusText,
+      texto
+    );
+    throw new Error(
+      `Falha no login. Status: ${resp.status} - ${resp.statusText}`
+    );
   }
 
-  return res.json();
+  // Aqui assumo que o backend retorna: { access_token, token_type, user: {...} }
+  const data = (await resp.json()) as LoginResponse;
+  return data;
 }
 
-export function salvarSessao(login: LoginResponse) {
+export function salvarSessao(loginResponse: LoginResponse) {
   if (typeof window === "undefined") return;
-  localStorage.setItem("adega_token", login.access_token);
-  localStorage.setItem("adega_user", JSON.stringify(login.user));
+
+  // Guarda token e usuário no localStorage
+  localStorage.setItem("adega_token", loginResponse.access_token);
+  localStorage.setItem("adega_user", JSON.stringify(loginResponse.user));
 }
 
 export function limparSessao() {

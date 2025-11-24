@@ -50,7 +50,7 @@ export default function ProdutosPage() {
               href="/"
               className="rounded-full border border-amber-500/40 bg-amber-900/20 px-4 py-1.5 font-medium text-amber-100 transition hover:bg-amber-800/50 hover:text-amber-50"
             >
-              ← Voltar para Home
+              ← Home
             </Link>
           </nav>
         </header>

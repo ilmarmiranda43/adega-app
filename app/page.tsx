@@ -11,6 +11,8 @@ import {
   type Categoria,
 } from "@/lib/api";
 
+import { obterUsuarioAtual, limparSessao } from "@/lib/auth";
+
 export default function Home() {
   const router = useRouter();
 
@@ -20,6 +22,16 @@ export default function Home() {
 
   // controla se já verificamos se o usuário está autenticado
   const [authChecked, setAuthChecked] = useState(false);
+
+  // nome de quem está logado
+  const [userName, setUserName] = useState<string>("Usuário");
+  const [perfil, setPerfil] = useState("");
+
+  // FUNÇÃO DE LOGOUT
+  const handleLogout = () => {
+    limparSessao();          // limpa token + dados do usuário (na lib auth)
+    router.replace("/login");
+  };
 
   useEffect(() => {
     async function carregarDashboard() {
@@ -38,18 +50,22 @@ export default function Home() {
       }
     }
 
-    // Verifica se existe token no localStorage
-    const token = typeof window !== "undefined"
-      ? localStorage.getItem("adega_token")
-      : null;
+    // usa a mesma lógica da tela de login
+    const usuario = typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
-    if (!token) {
+    if (!usuario) {
       // se não estiver logado, manda para /login e NÃO segue
       router.replace("/login");
       return;
     }
 
-    // se tiver token, podemos carregar o dashboard
+    // define o nome que será exibido
+    const nomeDoUsuario =
+      usuario.nome ?? usuario.email ?? usuario.nome ?? usuario.perfil ?? "Usuário";
+    setUserName(nomeDoUsuario);
+    setPerfil(usuario.perfil);
+
+    // se tiver usuário, podemos carregar o dashboard
     setAuthChecked(true);
     carregarDashboard();
   }, [router]);
@@ -65,12 +81,12 @@ export default function Home() {
     );
   }
 
-  // Daqui pra baixo está a SUA tela original, intacta :)
+  // resto da página igual ao seu código
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
         {/* TOPO */}
-        <header className="mb-6 flex items-center justify-between">
+        <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🍷</span>
             <div>
@@ -83,9 +99,34 @@ export default function Home() {
             </div>
           </div>
 
-          <span className="rounded-full border border-amber-500/40 bg-amber-900/30 px-4 py-1 text-xs font-medium uppercase tracking-wide text-amber-200">
-            Painel da Adega
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="rounded-full border border-amber-500/40 bg-amber-900/30 px-4 py-1 text-xs font-medium uppercase tracking-wide text-amber-200">
+              Painel da Adega
+            </span>
+
+            {/* Info do usuário + Logout */}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-[11px] uppercase tracking-wide text-zinc-400">
+                  Logado como
+                </p>
+                <p className="text-sm font-medium text-amber-200">
+                  {userName}
+                  {perfil && (
+                  <span className="ml-1 text-xs text-amber-300">
+                    ({perfil})
+                  </span>)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-full border border-red-600/60 bg-red-900/30 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-red-200 hover:bg-red-800/40 transition"
+              >
+                Sair
+              </button>
+            </div>
+          </div>
         </header>
 
         {/* CONTEÚDO PRINCIPAL */}
@@ -122,18 +163,14 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* TAGS */}
-            <div className="mt-2 flex flex-wrap gap-3 text-xs text-zinc-400">
-              <span className="rounded-full border border-zinc-700 px-3 py-1">
-                📱 Responsivo (mobile / tablet / desktop)
-              </span>
-              <span className="rounded-full border border-zinc-700 px-3 py-1">
-                🏷️ Cadastro de rótulos
-              </span>
-              <span className="rounded-full border border-zinc-700 px-3 py-1">
-                📊 Visão rápida de vendas
-              </span>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/usuarios/cadastrar"
+                className="btn-primary">
+                Cadastrar usuário
+              </Link>
             </div>
+
           </section>
 
           {/* LADO DIREITO – CARD RESUMO */}
