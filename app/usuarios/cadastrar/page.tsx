@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { obterUsuarioAtual, obterToken } from "@/lib/auth";
 
 type Perfil = {
   id: number;
@@ -16,6 +17,11 @@ const API_BASE =
 export default function CadastroUsuarioPage() {
   const router = useRouter();
 
+  // estados de permissão
+  const [autorizado, setAutorizado] = useState(false);
+  const [verificandoPermissao, setVerificandoPermissao] = useState(true);
+
+  // estados do form...
   const [perfis, setPerfis] = useState<Perfil[]>([]);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -28,14 +34,50 @@ export default function CadastroUsuarioPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
 
-  // Carrega lista de perfis ao montar a página
+  // 1) Verificar permissão
   useEffect(() => {
+    const usuarioAtual = obterUsuarioAtual();
+    if (!usuarioAtual) {
+      router.replace("/login");
+      return;
+    }
+
+    // pega o "perfil cru" vindo da sessão (pode ser string ou objeto)
+    const perfilBruto = (usuarioAtual as any)?.perfil;
+
+    const perfilNome =
+      typeof perfilBruto === "string"
+        ? perfilBruto
+        : perfilBruto?.nome;
+
+    const perfilNormalizado = (perfilNome || "").toLowerCase();
+
+    if (perfilNormalizado === "administrador" || perfilNormalizado === "admin" || perfilNormalizado === "gerente") {
+      setAutorizado(true);
+    } else {
+      setAutorizado(false);
+    }
+
+    setVerificandoPermissao(false);
+  }, [router]);
+
+  // 2) Carrega perfis só se estiver autorizado
+  useEffect(() => {
+    if (!autorizado) return;
+
     async function carregarPerfis() {
       try {
         setCarregandoPerfis(true);
         setErro(null);
 
-        const resp = await fetch(`${API_BASE}/perfis`);
+        const token = obterToken();
+        const headers: HeadersInit = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const resp = await fetch(`${API_BASE}/perfis`, { headers });
+
         if (!resp.ok) {
           const txt = await resp.text();
           console.error("Erro ao carregar perfis:", resp.status, txt);
@@ -43,7 +85,7 @@ export default function CadastroUsuarioPage() {
         }
 
         const dados: Perfil[] = await resp.json();
-        setPerfis(dados.filter((p) => p.ativo)); // só ativos
+        setPerfis(dados.filter((p) => p.ativo));
       } catch (err: any) {
         console.error(err);
         setErro(
@@ -55,7 +97,7 @@ export default function CadastroUsuarioPage() {
     }
 
     carregarPerfis();
-  }, []);
+  }, [autorizado]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -136,6 +178,30 @@ export default function CadastroUsuarioPage() {
 
   function handleCancelar() {
     router.back(); // volta pra página anterior
+  }
+
+  if (verificandoPermissao) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+        <p className="text-sm text-zinc-400">Verificando permissões...</p>
+      </div>
+    );
+  }
+
+  if (!autorizado) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+        <div className="rounded-2xl border border-red-600/60 bg-red-900/20 px-6 py-4 text-center">
+          <h1 className="text-lg font-semibold text-red-200">
+            Acesso negado
+          </h1>
+          <p className="mt-1 text-sm text-red-100/80">
+            Apenas usuários com perfil <strong>Administrador</strong> ou{" "}
+            <strong>Gerente</strong> podem cadastrar usuários.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -24,6 +24,8 @@ export async function login(
   email: string,
   senha: string
 ): Promise<LoginResponse> {
+  console.log("API_BASE login:", API_BASE);
+  
   const resp = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: {

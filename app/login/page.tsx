@@ -20,6 +20,16 @@ export default function LoginPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
 
+  // pega o perfil como string (independente de ser objeto ou string na sessão)
+  let perfilNome: string | undefined;
+  if (usuarioLogado) {
+    const perfilBruto = (usuarioLogado as any).perfil;
+    perfilNome =
+      typeof perfilBruto === "string"
+        ? perfilBruto
+        : perfilBruto?.nome;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErro(null);
@@ -28,7 +38,6 @@ export default function LoginPage() {
     try {
       const resp = await login(email, senha);
       salvarSessao(resp);
-      // Depois do login, manda pra home (ou pra /produtos/gerenciar se preferir)
       router.replace("/");
     } catch (err) {
       console.error(err);
@@ -40,9 +49,9 @@ export default function LoginPage() {
 
   function handleLogout() {
     limparSessao();
-    // Evita ficar preso na tela com usuário logado
     router.replace("/login");
   }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-4 py-8">
@@ -51,20 +60,13 @@ export default function LoginPage() {
             <span className="text-2xl">🍷</span>
             <div>
               <h1 className="text-xl font-semibold tracking-wide">
-                Adega's Shopping
+                Adega&apos;s Shopping
               </h1>
               <p className="text-xs text-zinc-400">
                 Acesso ao painel administrativo.
               </p>
             </div>
           </div>
-
-          {/* <Link
-            href="/"
-            className="text-xs text-amber-200 hover:text-amber-100 underline"
-          >
-            ← Voltar para Home
-          </Link> */}
         </header>
 
         <main className="flex-1">
@@ -75,8 +77,12 @@ export default function LoginPage() {
                   Logado como{" "}
                   <span className="font-semibold text-amber-200">
                     {usuarioLogado.nome}
-                  </span>{" "}
-                  ({usuarioLogado.perfil})
+                  </span>
+                  {perfilNome && (
+                    <span className="ml-1 text-xs text-amber-200">
+                      ({perfilNome})
+                    </span>
+                  )}
                 </p>
                 <div className="flex gap-2">
                   <Link

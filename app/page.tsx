@@ -34,41 +34,48 @@ export default function Home() {
   };
 
   useEffect(() => {
-    async function carregarDashboard() {
-      try {
-        setLoading(true);
-        const [prodData, catData] = await Promise.all([
-          listarProdutos(),
-          listarCategorias(),
-        ]);
-        setProdutos(prodData);
-        setCategorias(catData);
-      } catch (err) {
-        console.error("Erro ao carregar dados do dashboard:", err);
-      } finally {
-        setLoading(false);
-      }
+  async function carregarDashboard() {
+    try {
+      setLoading(true);
+      const [prodData, catData] = await Promise.all([
+        listarProdutos(),
+        listarCategorias(),
+      ]);
+      setProdutos(prodData);
+      setCategorias(catData);
+    } catch (err) {
+      console.error("Erro ao carregar dados do dashboard:", err);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    // usa a mesma lógica da tela de login
-    const usuario = typeof window !== "undefined" ? obterUsuarioAtual() : null;
+  const usuarioLogado  =
+    typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
-    if (!usuario) {
-      // se não estiver logado, manda para /login e NÃO segue
-      router.replace("/login");
-      return;
-    }
+  if (!usuarioLogado ) {
+    router.replace("/login");
+    return;
+  }
 
-    // define o nome que será exibido
-    const nomeDoUsuario =
-      usuario.nome ?? usuario.email ?? usuario.nome ?? usuario.perfil ?? "Usuário";
-    setUserName(nomeDoUsuario);
-    setPerfil(usuario.perfil);
+  // nome
+  const nomeDoUsuario =
+    usuarioLogado .nome ?? usuarioLogado .email ?? "Usuário";
+  setUserName(nomeDoUsuario);
 
-    // se tiver usuário, podemos carregar o dashboard
-    setAuthChecked(true);
-    carregarDashboard();
-  }, [router]);
+  // perfil pode ser string ou objeto { nome, ... }
+  const perfilBruto = (usuarioLogado  as any).perfil;
+  const perfilNome =
+    typeof perfilBruto === "string"
+      ? perfilBruto
+      : perfilBruto?.nome ?? "";
+
+  setPerfil(perfilNome);
+
+  setAuthChecked(true);
+  carregarDashboard();
+}, [router]);
+
 
   // Enquanto ainda estamos verificando auth, mostra só uma tela de loading
   if (!authChecked) {
@@ -163,13 +170,17 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/usuarios/cadastrar"
-                className="btn-primary">
-                Cadastrar usuário
-              </Link>
-            </div>
+            {perfil &&
+              ["administrador", "admin", "gerente"].includes(perfil.toLowerCase()) && (
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link href="/usuarios/cadastrar" className="btn-primary">
+                    Cadastrar usuário
+                  </Link>
+                  <Link href="/usuarios" className="btn-primary">
+                    Listar usuário
+                  </Link>
+                </div>
+              )}
 
           </section>
 
