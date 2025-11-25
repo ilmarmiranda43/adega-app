@@ -39,8 +39,26 @@ export type CategoriaCreateInput = {
 export type ProdutoUpdateInput = Partial<ProdutoCreateInput>;
 export type CategoriaUpdateInput = Partial<CategoriaCreateInput>;
 
-const API_BASE =
+export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE || "https://adega-app-api.onrender.com";
+
+export function getAuthToken(): string | null {
+  
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem("adega_token");
+
+  if (!raw) return null;
+
+  return raw;
+
+  // try {
+  //   const sessao = JSON.parse(raw);
+
+  //   return sessao?.token ?? null;
+  // } catch {
+  //   return null;
+  // }
+}
 
 // LISTAR
 export async function listarProdutos(): Promise<Produto[]> {

@@ -176,8 +176,17 @@ export default function Home() {
                   <Link href="/usuarios/cadastrar" className="btn-primary">
                     Cadastrar usuário
                   </Link>
+
                   <Link href="/usuarios" className="btn-primary">
                     Listar usuário
+                  </Link>
+
+                  <Link href="/estoque" className="btn-primary">
+                    Estoque
+                  </Link>
+
+                  <Link href="/clientes" className="btn-primary">
+                    Cadastrar Clientes
                   </Link>
                 </div>
               )}
