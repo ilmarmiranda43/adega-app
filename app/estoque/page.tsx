@@ -10,10 +10,15 @@ type ItemEstoque = {
   id: number;
   produto_id: number;
   quantidade: number;
-  localizacao?: string;
-  lote?: string;
+  local?: string;
+  observacoes?: string;
   data_entrada: string;
   data_validade?: string;
+};
+
+type Produto = {
+  id: number;
+  nome: string;
 };
 
 type UsuarioAtual = {
@@ -25,6 +30,8 @@ type UsuarioAtual = {
 export default function EstoquePage() {
   const router = useRouter();
   const [itens, setItens] = useState<ItemEstoque[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [busca, setBusca] = useState("");
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [usuario, setUsuario] = useState<UsuarioAtual | null>(null);
@@ -39,41 +46,78 @@ export default function EstoquePage() {
       return;
     }
 
-    async function carregarEstoque() {
+    async function carregarDados() {
       try {
-        const resp = await fetch(`${API_BASE}/estoque/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        setLoading(true);
 
-        if (resp.status === 401 || resp.status === 403) {
-          setErro("Você não tem permissão para ver o estoque.");
-          if (resp.status === 401) {
-            router.push("/login");
-          }
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        const [respEstoque, respProdutos] = await Promise.all([
+          fetch(`${API_BASE}/estoque/`, { headers }),
+          fetch(`${API_BASE}/produtos/`, { headers }),
+        ]);
+
+        if (respEstoque.status === 401 || respProdutos.status === 401) {
+          router.push("/login");
           return;
         }
 
-        if (!resp.ok) {
+        if (
+          respEstoque.status === 403 ||
+          respProdutos.status === 403
+        ) {
+          setErro("Você não tem permissão para ver o estoque.");
+          return;
+        }
+
+        if (!respEstoque.ok) {
           throw new Error("Erro ao carregar estoque.");
         }
 
-        const data = await resp.json();
-        setItens(data);
+        if (!respProdutos.ok) {
+          throw new Error("Erro ao carregar produtos.");
+        }
+
+        const dadosEstoque = await respEstoque.json();
+        const dadosProdutos = await respProdutos.json();
+
+        setItens(dadosEstoque);
+        setProdutos(dadosProdutos);
       } catch (error: any) {
-        setErro(error.message ?? "Erro ao carregar estoque.");
+        setErro(error.message ?? "Erro ao carregar dados.");
       } finally {
         setLoading(false);
       }
     }
 
-    carregarEstoque();
+    carregarDados();
   }, [router]);
 
   const isAdminOrManager =
-    usuario &&
-    (usuario.perfil_id === 1 || usuario.perfil_id === 2);
+    usuario && (usuario.perfil_id === 1 || usuario.perfil_id === 2);
+
+  function obterNomeProduto(produto_id: number): string {
+    const prod = produtos.find((p) => p.id === produto_id);
+    return prod ? prod.nome : `ID ${produto_id}`;
+  }
+
+  const itensFiltrados = itens.filter((item) => {
+    const texto = busca.toLowerCase().trim();
+    if (!texto) return true;
+
+    const nomeProduto = obterNomeProduto(item.produto_id).toLowerCase();
+    const local = (item.local ?? "").toLowerCase();
+    const obs = (item.observacoes ?? "").toLowerCase();
+
+    return (
+      nomeProduto.includes(texto) ||
+      String(item.produto_id).includes(texto) ||
+      local.includes(texto) ||
+      obs.includes(texto)
+    );
+  });
 
   if (loading) {
     return <p className="p-4 text-zinc-200">Carregando estoque...</p>;
@@ -85,49 +129,89 @@ export default function EstoquePage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6">
-      <div className="mb-6 flex items-center justify-between gap-3">
+      {/* HEADER PADRONIZADO */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-amber-200">Estoque</h1>
+          <h1 className="text-3xl font-bold text-amber-300">Estoque</h1>
           <p className="text-sm text-zinc-400">
-            Visualize as entradas de estoque dos produtos.
+            Visualize e gerencie as entradas de estoque dos produtos.
           </p>
         </div>
 
-        {isAdminOrManager && (
+        <div className="flex gap-3">
           <button
             type="button"
-            className="btn-primary"
-            onClick={() => {
-              // aqui você pode levar para uma página de "nova entrada de estoque"
-              // ex: /estoque/adicionar
-            }}
+            onClick={() => router.push("/")}
+            className="btn-secondary"
           >
-            Nova entrada
+            ← Voltar
           </button>
-        )}
+
+          {isAdminOrManager && (
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => router.push("/estoque/cadastrar")}
+            >
+              Nova entrada
+            </button>
+          )}
+        </div>
       </div>
 
+      {/* BUSCA */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs text-zinc-500">
+          {itensFiltrados.length} registro(s) exibido(s)
+        </div>
+        <div className="w-full sm:w-80">
+          <input
+            type="text"
+            placeholder="Buscar por produto, ID, local ou observação..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
+          />
+        </div>
+      </div>
+
+      {/* TABELA */}
       <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/60">
         <table className="min-w-full text-sm">
           <thead className="bg-zinc-900/70 text-zinc-300">
             <tr>
-              <th className="px-4 py-3 text-left">Produto ID</th>
+              <th className="px-4 py-3 text-left">Produto</th>
               <th className="px-4 py-3 text-left">Quantidade</th>
-              <th className="px-4 py-3 text-left">Localização</th>
-              <th className="px-4 py-3 text-left">Lote</th>
+              <th className="px-4 py-3 text-left">Local</th>
+              <th className="px-4 py-3 text-left">Observações</th>
               <th className="px-4 py-3 text-left">Entrada</th>
               <th className="px-4 py-3 text-left">Validade</th>
+              {isAdminOrManager && (
+                <th className="px-4 py-3 text-left">Ações</th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {itens.map((item) => (
-              <tr key={item.id} className="hover:bg-zinc-900/60">
-                <td className="px-4 py-3 text-zinc-100">{item.produto_id}</td>
-                <td className="px-4 py-3 text-zinc-100">{item.quantidade}</td>
-                <td className="px-4 py-3 text-zinc-300">
-                  {item.localizacao ?? "-"}
+            {itensFiltrados.map((item) => (
+              <tr
+                key={item.id}
+                className="hover:bg-zinc-900/60 transition-colors"
+              >
+                <td className="px-4 py-3 text-zinc-100">
+                  {obterNomeProduto(item.produto_id)}
+                  <span className="ml-2 text-xs text-zinc-500">
+                    (ID: {item.produto_id})
+                  </span>
                 </td>
-                <td className="px-4 py-3 text-zinc-300">{item.lote ?? "-"}</td>
+                <td className="px-4 py-3 text-zinc-100">
+                  {item.quantidade}
+                </td>
+                <td className="px-4 py-3 text-zinc-300">
+                  {item.local ?? "-"}
+                </td>
+                <td className="px-4 py-3 text-zinc-300">
+                  {item.observacoes ?? "-"}
+                </td>
                 <td className="px-4 py-3 text-zinc-300">
                   {new Date(item.data_entrada).toLocaleDateString("pt-BR")}
                 </td>
@@ -136,13 +220,30 @@ export default function EstoquePage() {
                     ? new Date(item.data_validade).toLocaleDateString("pt-BR")
                     : "-"}
                 </td>
+
+                {isAdminOrManager && (
+                  <td className="px-4 py-3 text-zinc-300">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(`/estoque/${item.id}/editar`)
+                      }
+                      className="rounded-full border border-zinc-600 px-3 py-1 text-xs text-zinc-200 hover:bg-zinc-800"
+                    >
+                      Editar
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
 
-            {itens.length === 0 && (
+            {itensFiltrados.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-zinc-500">
-                  Nenhuma entrada de estoque cadastrada.
+                <td
+                  colSpan={isAdminOrManager ? 7 : 6}
+                  className="px-4 py-6 text-center text-zinc-500"
+                >
+                  Nenhuma entrada de estoque encontrada com esse filtro.
                 </td>
               </tr>
             )}
