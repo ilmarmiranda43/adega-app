@@ -29,7 +29,7 @@ export type PedidoRead = {
   data_criacao: string;
   status: string;
   observacoes?: string | null;
-  total: string;
+  valor_total: string;
   itens: ItemPedidoRead[];
 };
 

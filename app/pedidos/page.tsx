@@ -129,6 +129,7 @@ export default function PedidosPage() {
                 <th className="px-3 py-2 text-left">Data</th>
                 <th className="px-3 py-2 text-left">Status</th>
                 <th className="px-3 py-2 text-right">Total</th>
+                <th className="px-3 py-2 text-right">Observações</th>
                 <th className="px-3 py-2 text-right">Ações</th>
               </tr>
             </thead>
@@ -142,22 +143,40 @@ export default function PedidosPage() {
                   </td>
                   <td className="px-3 py-2 capitalize">{p.status}</td>
                   <td className="px-3 py-2 text-right">
-                    R$ {Number(p.total).toFixed(2)}
+                    R$ {Number(p.valor_total).toFixed(2)}
                   </td>
+                  <td className="px-3 py-2 capitalize">{p.observacoes}</td>
                   <td className="px-3 py-2 text-right space-x-2">
-                    <button
-                      className="rounded-full border border-emerald-500/60 px-2 py-1 text-[11px] text-emerald-200 hover:bg-emerald-900/40"
-                      onClick={() => handleAlterarStatus(p.id, "confirmado")}
-                    >
-                      Confirmar
-                    </button>
-                    <button
-                      className="rounded-full border border-red-500/60 px-2 py-1 text-[11px] text-red-200 hover:bg-red-900/40"
-                      onClick={() => handleAlterarStatus(p.id, "cancelado")}
-                    >
-                      Cancelar
-                    </button>
+                    {/** só pode alterar se o status for "aberto" */}
+                    {(() => {
+                      const podeAlterar = p.status === "aberto";
+
+                      return (
+                        <>
+                          <button
+                            disabled={!podeAlterar}
+                            className={`rounded-full border border-emerald-500/60 px-2 py-1 text-[11px] text-emerald-200
+                              ${podeAlterar ? "hover:bg-emerald-900/40 cursor-pointer" : "opacity-40 cursor-not-allowed"}
+                            `}
+                            onClick={() => podeAlterar && handleAlterarStatus(p.id, "confirmado")}
+                          >
+                            Confirmar
+                          </button>
+
+                          <button
+                            disabled={!podeAlterar}
+                            className={`rounded-full border border-red-500/60 px-2 py-1 text-[11px] text-red-200
+                              ${podeAlterar ? "hover:bg-red-900/40 cursor-pointer" : "opacity-40 cursor-not-allowed"}
+                            `}
+                            onClick={() => podeAlterar && handleAlterarStatus(p.id, "cancelado")}
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      );
+                    })()}
                   </td>
+
                 </tr>
               ))}
             </tbody>
