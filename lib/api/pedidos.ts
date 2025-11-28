@@ -54,10 +54,23 @@ async function authFetch(input: RequestInfo, init: RequestInit = {}) {
   return res;
 }
 
-export async function listarPedidos(): Promise<PedidoRead[]> {
-  const res = await authFetch(`${API_BASE_URL}/pedidos/`);
+export async function listarPedidos(
+  status_pedido?: string,
+  cliente_id?: number
+): Promise<PedidoRead[]> {
+  const params = new URLSearchParams();
+  if (status_pedido) params.set("status_pedido", status_pedido);
+  if (cliente_id) params.set("cliente_id", String(cliente_id));
+
+  const queryString = params.toString();
+  const url = queryString
+    ? `${API_BASE_URL}/pedidos/?${queryString}`
+    : `${API_BASE_URL}/pedidos/`;
+
+  const res = await authFetch(url);
   return res.json();
 }
+
 
 export async function criarPedido(data: PedidoCreate): Promise<PedidoRead> {
   const res = await authFetch(`${API_BASE_URL}/pedidos/`, {

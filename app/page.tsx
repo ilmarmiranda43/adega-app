@@ -11,6 +11,8 @@ import {
   type Categoria,
 } from "@/lib/api";
 
+import { listarPedidos } from "@/lib/api/pedidos"; // <-- NOVO
+
 import { obterUsuarioAtual, limparSessao } from "@/lib/auth";
 
 export default function Home() {
@@ -18,6 +20,7 @@ export default function Home() {
 
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [pedidos, setPedidos] = useState<any[]>([]); // <-- NOVO
   const [loading, setLoading] = useState(true);
 
   // controla se já verificamos se o usuário está autenticado
@@ -29,53 +32,57 @@ export default function Home() {
 
   // FUNÇÃO DE LOGOUT
   const handleLogout = () => {
-    limparSessao();          // limpa token + dados do usuário (na lib auth)
+    limparSessao(); // limpa token + dados do usuário (na lib auth)
     router.replace("/login");
   };
 
   useEffect(() => {
-  async function carregarDashboard() {
-    try {
-      setLoading(true);
-      const [prodData, catData] = await Promise.all([
-        listarProdutos(),
-        listarCategorias(),
-      ]);
-      setProdutos(prodData);
-      setCategorias(catData);
-    } catch (err) {
-      console.error("Erro ao carregar dados do dashboard:", err);
-    } finally {
-      setLoading(false);
+    async function carregarDashboard() {
+      try {
+        setLoading(true);
+        const [prodData, catData, pedData] = await Promise.all([
+          listarProdutos(),
+          listarCategorias(),
+          listarPedidos(), // <-- NOVO
+        ]);
+        setProdutos(prodData);
+        setCategorias(catData);
+        setPedidos(pedData); // <-- NOVO
+      } catch (err) {
+        console.error("Erro ao carregar dados do dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }
 
-  const usuarioLogado  =
-    typeof window !== "undefined" ? obterUsuarioAtual() : null;
+    const usuarioLogado =
+      typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
-  if (!usuarioLogado ) {
-    router.replace("/login");
-    return;
-  }
+    if (!usuarioLogado) {
+      router.replace("/login");
+      return;
+    }
 
-  // nome
-  const nomeDoUsuario =
-    usuarioLogado .nome ?? usuarioLogado .email ?? "Usuário";
-  setUserName(nomeDoUsuario);
+    // nome
+    const nomeDoUsuario =
+      usuarioLogado.nome ?? usuarioLogado.email ?? "Usuário";
+    setUserName(nomeDoUsuario);
 
-  // perfil pode ser string ou objeto { nome, ... }
-  const perfilBruto = (usuarioLogado  as any).perfil;
-  const perfilNome =
-    typeof perfilBruto === "string"
-      ? perfilBruto
-      : perfilBruto?.nome ?? "";
+    // perfil pode ser string ou objeto { nome, ... }
+    const perfilBruto = (usuarioLogado as any).perfil;
+    const perfilNome =
+      typeof perfilBruto === "string" ? perfilBruto : perfilBruto?.nome ?? "";
 
-  setPerfil(perfilNome);
+    setPerfil(perfilNome);
 
-  setAuthChecked(true);
-  carregarDashboard();
-}, [router]);
+    setAuthChecked(true);
+    carregarDashboard();
+  }, [router]);
 
+  // calcula pedidos abertos (se o backend usa status = "aberto")
+  const pedidosAbertos = pedidos.filter(
+    (p: any) => p.status?.toLowerCase() === "aberto"
+  ).length;
 
   // Enquanto ainda estamos verificando auth, mostra só uma tela de loading
   if (!authChecked) {
@@ -88,7 +95,7 @@ export default function Home() {
     );
   }
 
-  // resto da página igual ao seu código
+  // resto da página igual ao seu código, com card extra de pedidos
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
@@ -120,9 +127,10 @@ export default function Home() {
                 <p className="text-sm font-medium text-amber-200">
                   {userName}
                   {perfil && (
-                  <span className="ml-1 text-xs text-amber-300">
-                    ({perfil})
-                  </span>)}
+                    <span className="ml-1 text-xs text-amber-300">
+                      ({perfil})
+                    </span>
+                  )}
                 </p>
               </div>
               <button
@@ -171,8 +179,10 @@ export default function Home() {
             </div>
 
             {perfil &&
-              ["administrador", "admin", "gerente"].includes(perfil.toLowerCase()) && (
-                <div className="flex flex-col gap-3 sm:flex-row">
+              ["administrador", "admin", "gerente"].includes(
+                perfil.toLowerCase()
+              ) && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link href="/usuarios/cadastrar" className="btn-primary">
                     Cadastrar usuário
                   </Link>
@@ -188,9 +198,12 @@ export default function Home() {
                   <Link href="/clientes" className="btn-primary">
                     Cadastrar Clientes
                   </Link>
+
+                  <Link href="/pedidos" className="btn-primary">
+                    Pedidos
+                  </Link>
                 </div>
               )}
-
           </section>
 
           {/* LADO DIREITO – CARD RESUMO */}
@@ -201,7 +214,7 @@ export default function Home() {
               </h3>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
                     <p className="text-xs text-zinc-400">Produtos</p>
                     <p className="mt-2 text-2xl font-semibold text-amber-300">
@@ -219,6 +232,16 @@ export default function Home() {
                     </p>
                     <p className="mt-1 text-[11px] text-zinc-500">
                       Agrupamentos para organizar o catálogo.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
+                    <p className="text-xs text-zinc-400">Pedidos abertos</p>
+                    <p className="mt-2 text-2xl font-semibold text-amber-300">
+                      {loading ? "—" : pedidosAbertos}
+                    </p>
+                    <p className="mt-1 text-[11px] text-zinc-500">
+                      Pedidos aguardando confirmação.
                     </p>
                   </div>
                 </div>
