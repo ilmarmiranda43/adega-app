@@ -1,6 +1,7 @@
 // app/clientes/cadastrar/page.tsx
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE, getAuthToken } from "@/lib/api";
@@ -14,6 +15,7 @@ export default function CadastrarClientePage() {
   const [estado, setEstado] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
    function handleCancelar() {
     router.back(); // volta pra página anterior
@@ -69,9 +71,17 @@ export default function CadastrarClientePage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="text-2xl font-semibold text-amber-200 mb-1">
-        Cadastrar cliente
-      </h1>
+      {/* <h1 className="text-2xl font-semibold text-amber-200 mb-1">
+        {adegaNome || "Minha Adega"} - Cadastrar cliente
+      </h1> */}
+      <header className="mb-4">
+        <h1 className="text-xl font-semibold">
+          {adegaNome || "Minha Adega"} - Cadastrar Cliente
+        </h1>
+        <p className="text-sm text-zinc-500">
+          Olá, {userName} ({perfilNome})
+        </p>
+      </header>
       <p className="text-sm text-zinc-400 mb-6">
         Preencha os dados do novo cliente.
       </p>

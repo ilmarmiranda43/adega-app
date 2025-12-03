@@ -1,6 +1,7 @@
 // app/clientes/page.tsx
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,6 +29,7 @@ export default function ClientesPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [usuario, setUsuario] = useState<UsuarioAtual | null>(null);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   useEffect(() => {
     const user = obterUsuarioAtual() as UsuarioAtual | null;
@@ -81,7 +83,15 @@ export default function ClientesPage() {
       {/* HEADER PADRONIZADO */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-300">Clientes</h1>
+          {/* <h1 className="text-3xl font-bold text-amber-300">{adegaNome || "Minha Adega"} - Clientes</h1> */}
+          <header className="mb-4">
+            <h1 className="text-xl font-semibold">
+              {adegaNome || "Minha Adega"} - Clientes
+            </h1>
+            <p className="text-sm text-zinc-500">
+              Olá, {userName} ({perfilNome})
+            </p>
+          </header>
           <p className="text-sm text-zinc-400">
             Gerencie o cadastro de clientes da adega.
           </p>

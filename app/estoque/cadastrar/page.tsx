@@ -1,6 +1,7 @@
 // app/estoque/cadastrar/page.tsx
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE, getAuthToken } from "@/lib/api";
@@ -25,6 +26,7 @@ export default function CadastrarEstoquePage() {
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   // Carregar produtos cadastrados + setar data de hoje
   useEffect(() => {
@@ -136,9 +138,17 @@ export default function CadastrarEstoquePage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="mb-1 text-2xl font-semibold text-zinc-100">
-        Nova entrada de estoque
-      </h1>
+      {/* <h1 className="text-2xl font-bold text-amber-300">
+        {adegaNome || "Minha Adega"} - Nova entrada de estoque
+      </h1> */}
+      <header className="mb-4">
+        <h1 className="text-xl font-semibold">
+          {adegaNome || "Minha Adega"} - Nova entrada de estoque
+        </h1>
+        <p className="text-sm text-zinc-500">
+          Olá, {userName} ({perfilNome})
+        </p>
+      </header>
       <p className="mb-6 text-sm text-zinc-400">
         Preencha os dados da nova entrada de estoque.
       </p>

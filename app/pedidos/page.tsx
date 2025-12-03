@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listarPedidos, PedidoRead, atualizarStatusPedido } from "@/lib/api/pedidos";
@@ -11,6 +12,7 @@ export default function PedidosPage() {
 
   const [statusFiltro, setStatusFiltro] = useState<string>("");
   const [clienteFiltro, setClienteFiltro] = useState<string>("");
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   async function carregar() {
     try {
@@ -47,10 +49,16 @@ export default function PedidosPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-        <h1 className="text-2xl font-semibold text-amber-200">
-            Pedidos
-        </h1>
-
+        
+          <header className="mb-4">
+            <h1 className="text-xl font-semibold">
+              {adegaNome || "Minha Adega"} - Pedidos
+            </h1>
+            <p className="text-sm text-zinc-500">
+              Olá, {userName} ({perfilNome})
+            </p>
+          </header>
+        
             <div className="flex gap-2">
                 <Link
                 href="/"

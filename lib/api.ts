@@ -2,26 +2,19 @@
 
 export type Produto = {
   id: number;
+  adega_id: number;
   nome: string;
-  tipo_bebida: string;
-  marca?: string;
-  volume_ml?: number;
-  teor_alcoolico?: number;
-  preco_custo?: number;
-  preco_venda: number;
-  foto_url?: string;
+  catdegoria_id: number;
+  preco: number;
   ativo?: boolean;
 };
 
 export type ProdutoCreateInput = {
+  id?: number;
+  adega_id: number | null;
   nome: string;
-  tipo_bebida: string;
-  preco_venda: number;
-  marca?: string;
-  volume_ml?: number;
-  teor_alcoolico?: number;
-  preco_custo?: number;
-  foto_url?: string;
+  categoria_id: number | null;
+  preco: number;
   ativo?: boolean;
 };
 
@@ -134,7 +127,23 @@ export async function alternarAtivo(
 // Rotas de Categorias daqui pra baixo
 
 export async function listarCategorias(): Promise<Categoria[]> {
+  const headers: HeadersInit = {};
+
+  // Só existe window/localStorage no cliente
+  if (typeof window !== "undefined") {
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("adega_token");
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      console.warn("listarCategorias: nenhum token encontrado no localStorage");
+    }
+  }
+
   const res = await fetch(`${API_BASE}/categorias/`, {
+    method: "GET",
+    headers,
     next: { revalidate: 0 },
   });
 
@@ -144,7 +153,13 @@ export async function listarCategorias(): Promise<Categoria[]> {
       "listarCategorias falhou:",
       res.status,
       res.statusText,
-      texto);
+      texto
+    );
+
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Não autorizado ao carregar categorias. Faça login novamente.");
+    }
+
     throw new Error("Erro ao carregar categorias");
   }
 

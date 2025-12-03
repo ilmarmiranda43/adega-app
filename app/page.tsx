@@ -26,7 +26,8 @@ export default function Home() {
   const [authChecked, setAuthChecked] = useState(false);
 
   const [userName, setUserName] = useState<string>("Usuário");
-  const [perfil, setPerfil] = useState("");
+  const [perfil, setPerfil] = useState<string>("");
+  const [adegaNome, setAdegaNome] = useState<string>(""); 
 
   const handleLogout = () => {
     limparSessao();
@@ -38,15 +39,17 @@ export default function Home() {
       try {
         setLoading(true);
 
+        // Após as mudanças no backend, esses endpoints já devem
+        // considerar o adega_id do usuário autenticado
         const [prodData, catData, pedData] = await Promise.all([
           listarProdutos(),
           listarCategorias(),
-          listarPedidos(), // TODOS veem TODOS os pedidos
+          listarPedidos(), // backend filtra pela adega do usuário
         ]);
 
-        setProdutos(prodData);
-        setCategorias(catData);
-        setPedidos(pedData);
+        setProdutos(prodData ?? []);
+        setCategorias(catData ?? []);
+        setPedidos(pedData ?? []);
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
@@ -55,36 +58,63 @@ export default function Home() {
     }
 
     const usuarioLogado: any =
-    typeof window !== "undefined" ? obterUsuarioAtual() : null;
+      typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
     if (!usuarioLogado) {
       router.replace("/login");
       return;
     }
 
+    // Nome do usuário
     const nomeDoUsuario: string =
-      usuarioLogado?.nome ?? usuarioLogado?.email ?? "Usuário";
+      usuarioLogado?.nome ??
+      usuarioLogado?.email ??
+      usuarioLogado?.username ??
+      usuarioLogado?.adega_name ??
+      "Usuário";
 
     setUserName(nomeDoUsuario);
 
-    const perfilBruto: any = usuarioLogado?.perfil;
-    const perfilNome: string =
-      typeof perfilBruto === "string" ? perfilBruto : perfilBruto?.nome ?? "";
+    // Nome do perfil (compatível com vários formatos possíveis)
+    const perfilBruto: any =
+      usuarioLogado?.perfil ?? usuarioLogado?.perfil_nome ?? null;
+
+    let perfilNome = "";
+
+    if (typeof perfilBruto === "string") {
+      perfilNome = perfilBruto;
+    } else if (perfilBruto && typeof perfilBruto === "object") {
+      perfilNome = perfilBruto.nome ?? perfilBruto.descricao ?? "";
+    }
 
     setPerfil(perfilNome);
+
+    // Nome da adega (se o backend estiver enviando isso no token / sessão)
+    const adegaBruta: any =
+      usuarioLogado?.adega ?? usuarioLogado?.adega_nome ?? null;
+
+    if (typeof adegaBruta === "string") {
+      setAdegaNome(adegaBruta);
+    } else if (adegaBruta && typeof adegaBruta === "object") {
+      setAdegaNome(adegaBruta.nome ?? "");
+    }
 
     setAuthChecked(true);
     carregarDashboard();
   }, [router]);
 
-
+  // Contagem de pedidos em aberto (já filtrados por adega no backend)
   const pedidosAbertos = pedidos.filter(
     (p: any) => p.status?.toLowerCase() === "aberto"
   ).length;
 
+  // Regra de acesso: ADMIN / GERENTE
   const isAdminOrGerente =
     perfil &&
     ["administrador", "admin", "gerente"].includes(perfil.toLowerCase());
+
+  // (Opcional) se você tiver outros perfis, pode criar mais flags:
+  // const isAtendente = perfil && perfil.toLowerCase() === "atendente";
 
   if (!authChecked) {
     return (
@@ -105,7 +135,7 @@ export default function Home() {
             <span className="text-2xl">🍷</span>
             <div>
               <h1 className="text-xl font-semibold tracking-wide">
-                Diego&apos;s Adega
+                {adegaNome ? `${adegaNome}` : "Adega"}
               </h1>
               <p className="text-xs text-zinc-400">
                 Controle de rótulos, estoque e vendas em um só lugar.
@@ -149,8 +179,8 @@ export default function Home() {
           <section className="space-y-6 md:w-3/5">
             <div className="space-y-3">
               <h2 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
-                Organize sua <span className="text-amber-300">adega</span> como
-                um sommelier.
+                Organize sua{" "}
+                <span className="text-amber-300">adega</span> como um sommelier.
               </h2>
 
               <p className="max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
@@ -168,22 +198,29 @@ export default function Home() {
                   Atalhos principais
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
+                  {/* Catálogo de produtos: todos podem ver */}
                   <Link href="/produtos" className="btn-primary">
                     Catálogo de Produtos
                   </Link>
 
-                  <Link href="/produtos/gerenciar" className="btn-primary">
-                    Gerenciador da Adega
-                  </Link>
-
-                  <Link href="/produtos/categorias" className="btn-primary">
-                    Categorias de Produtos
-                  </Link>
-
+                  {/* Gerenciador e Categorias: apenas Admin / Gerente */}
                   {isAdminOrGerente && (
-                    <Link href="/estoque" className="btn-primary">
-                      Estoque
-                    </Link>
+                    <>
+                      <Link href="/produtos/gerenciar" className="btn-primary">
+                        Gerenciador da Adega
+                      </Link>
+
+                      <Link
+                        href="/produtos/categorias"
+                        className="btn-primary"
+                      >
+                        Categorias de Produtos
+                      </Link>
+
+                      <Link href="/estoque" className="btn-primary">
+                        Estoque
+                      </Link>
+                    </>
                   )}
                 </div>
               </div>
@@ -194,16 +231,16 @@ export default function Home() {
                   Operações do dia a dia
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {/* ABERTO PARA TODOS */}
+                  {/* Clientes e Pedidos: regra de negócio pode ser aberta para mais perfis */}
                   <Link href="/clientes" className="btn-primary">
-                    Cadastrar Clientes
+                    Cadastrar / Listar Clientes
                   </Link>
 
                   <Link href="/pedidos" className="btn-primary">
                     Pedidos
                   </Link>
 
-                  {/* APENAS ADMIN / GERENTE */}
+                  {/* Usuários: somente Admin / Gerente (combina com as rules do backend) */}
                   {isAdminOrGerente && (
                     <>
                       <Link href="/usuarios/cadastrar" className="btn-primary">
@@ -276,7 +313,8 @@ export default function Home() {
         </main>
 
         <footer className="mt-8 border-t border-zinc-800 pt-4 text-center text-xs text-zinc-500">
-          Diego&apos;s Adega • Projeto em desenvolvimento •{" "}
+          {adegaNome ? adegaNome : "Diego&apos;s Adega"} • Projeto em
+          desenvolvimento •{" "}
           <span className="text-amber-300">frontend Next.js</span>
         </footer>
       </div>

@@ -3,15 +3,17 @@
 import Image from "next/image";
 
 
-
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { listarProdutos, Produto } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+
 
 export default function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   useEffect(() => {
     listarProdutos()
@@ -25,6 +27,7 @@ export default function ProdutosPage() {
       .finally(() => {
         setLoading(false);
       });
+
   }, []);
 
   return (
@@ -35,12 +38,17 @@ export default function ProdutosPage() {
           <div className="flex items-center gap-2">
             <span className="text-2xl">🍷</span>
             <div>
-              <h1 className="text-xl font-semibold tracking-wide">
-                Diego's Adega
-              </h1>
-              <p className="text-xs text-zinc-400">
-                Catálogo de rótulos em tempo real.
-              </p>
+              {/* <h1 className="text-xl font-semibold tracking-wide">
+                {adegaNome || "Minha Adega"} - Catálogo de Produtos
+              </h1> */}
+              <header className="mb-4">
+                <h1 className="text-xl font-semibold">
+                  {adegaNome || "Minha Adega"} - Catálogo de Produtos
+                </h1>
+                <p className="text-sm text-zinc-500">
+                  Olá, {userName} ({perfilNome})
+                </p>
+              </header>
             </div>
           </div>
 
@@ -102,7 +110,7 @@ export default function ProdutosPage() {
                   className="flex flex-col overflow-hidden rounded-2xl border border-amber-900/40 bg-zinc-900/70 shadow-lg shadow-black/40"
                 >
                   {/* Imagem / capa */}
-                  {p.foto_url && (
+                  {/* {p.foto_url && (
                     <div className="relative h-40 w-full overflow-hidden">
                         <Image
                         src={p.foto_url}
@@ -112,7 +120,7 @@ export default function ProdutosPage() {
                         />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                     </div>
-                    )}
+                    )} */}
 
 
                   {/* Conteúdo do card */}
@@ -121,18 +129,18 @@ export default function ProdutosPage() {
                       {p.nome}
                     </h3>
 
-                    <p className="text-xs text-zinc-400">
+                    {/* <p className="text-xs text-zinc-400">
                       Tipo:{" "}
                       <span className="font-medium text-amber-200">
                         {p.tipo_bebida}
                       </span>
-                    </p>
+                    </p> */}
 
                     {/* Em breve: aqui dá para colocar teor alcoólico, volume, etc. */}
 
                     <div className="mt-auto flex items-center justify-between pt-2">
                       <span className="text-sm font-bold text-emerald-300">
-                        R$ {p.preco_venda.toFixed(2)}
+                        R$ {p.preco}
                       </span>
 
                       <span className="rounded-full border border-zinc-700 px-2 py-1 text-[10px] uppercase tracking-wide text-zinc-300">

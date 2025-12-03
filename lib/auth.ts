@@ -4,7 +4,13 @@ export type Usuario = {
   id: number;
   nome: string;
   email: string;
-  perfil: "admin" | "gerente" | "usuario" | "cliente" | string;
+  // perfil: "admin" | "gerente" | "usuario" | "cliente" | string;
+  perfil?: string | { nome?: string; descricao?: string };
+  username?: string;
+  perfil_nome?: string;
+
+  adega?: { id?: number; nome?: string } | string;
+  adega_nome?: string;
 };
 
 export type LoginResponse = {

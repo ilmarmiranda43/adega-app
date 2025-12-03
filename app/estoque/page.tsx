@@ -1,6 +1,7 @@
 // app/estoque/page.tsx
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE, getAuthToken } from "@/lib/api";
@@ -35,6 +36,7 @@ export default function EstoquePage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [usuario, setUsuario] = useState<UsuarioAtual | null>(null);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   useEffect(() => {
     const user = obterUsuarioAtual() as UsuarioAtual | null;
@@ -132,7 +134,15 @@ export default function EstoquePage() {
       {/* HEADER PADRONIZADO */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-300">Estoque</h1>
+          {/* <h1 className="text-3xl font-bold text-amber-300">{adegaNome || "Minha Adega"} - Estoque</h1> */}
+          <header className="mb-4">
+            <h1 className="text-xl font-semibold">
+              {adegaNome || "Minha Adega"} - Estoque
+            </h1>
+            <p className="text-sm text-zinc-500">
+              Olá, {userName} ({perfilNome})
+            </p>
+          </header>
           <p className="text-sm text-zinc-400">
             Visualize e gerencie as entradas de estoque dos produtos.
           </p>

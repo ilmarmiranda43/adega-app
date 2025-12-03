@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { criarPedido, ItemPedidoCreate, PedidoCreate } from "@/lib/api/pedidos";
@@ -19,6 +20,7 @@ export default function NovoPedidoPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregandoDados, setCarregandoDados] = useState(true);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   useEffect(() => {
     async function carregarDadosIniciais() {
@@ -95,9 +97,18 @@ export default function NovoPedidoPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 space-y-4">
-      <h1 className="text-2xl font-semibold text-amber-200">
-        Novo pedido
-      </h1>
+      {/* <h1 className="text-2xl font-semibold text-amber-200">
+        {adegaNome || "Minha Adega"} - Novo pedido
+      </h1> */}
+
+      <header className="mb-4">
+        <h1 className="text-xl font-semibold">
+          {adegaNome || "Minha Adega"} - Novo Pedido
+        </h1>
+        <p className="text-sm text-zinc-500">
+          Olá, {userName} ({perfilNome})
+        </p>
+      </header>
 
       {erro && <p className="text-sm text-red-400">{erro}</p>}
       {carregandoDados && <p className="text-sm text-zinc-300">Carregando clientes e produtos...</p>}

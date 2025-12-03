@@ -1,5 +1,5 @@
 "use client";
-
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -28,6 +28,7 @@ export default function CategoriasPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [form, setForm] = useState<FormState>(formStateDefault);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   async function carregarCategorias() {
     try {
@@ -115,12 +116,17 @@ export default function CategoriasPage() {
           <div className="flex items-center gap-2">
             <span className="text-2xl">🍷</span>
             <div>
-              <h1 className="text-xl font-semibold tracking-wide">
-                Diego&apos;s Adega
-              </h1>
-              <p className="text-xs text-zinc-400">
-                Cadastro e gerenciamento de categorias de produtos.
-              </p>
+              {/* <h1 className="text-xl font-semibold tracking-wide">
+                {adegaNome || "Minha Adega"} - Categorias
+              </h1> */}
+              <header className="mb-4">
+                <h1 className="text-xl font-semibold">
+                  {adegaNome || "Minha Adega"} - Categorias
+                </h1>
+                <p className="text-sm text-zinc-500">
+                  Olá, {userName} ({perfilNome})
+                </p>
+              </header>
             </div>
           </div>
 

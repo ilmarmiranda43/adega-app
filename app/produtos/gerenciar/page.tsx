@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@/context/AuthContext"
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -13,20 +15,19 @@ import {
 
 type FormState = {
   idEditando: number | null;
+  adega_id: number | null;
   nome: string;
-  tipo_bebida: string;
-  preco_venda: string;
-  marca: string;
-  foto_url: string;
+  categoria_id: number | null;
+  preco: string;
+  ativo?: boolean;
 };
 
 const formStateDefault: FormState = {
   idEditando: null,
+  adega_id: null,
   nome: "",
-  tipo_bebida: "",
-  preco_venda: "",
-  marca: "",
-  foto_url: "",
+  categoria_id: null,
+  preco: "",
 };
 
 export default function GerenciarProdutosPage() {
@@ -35,6 +36,7 @@ export default function GerenciarProdutosPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [form, setForm] = useState<FormState>(formStateDefault);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   async function carregarProdutos() {
     try {
@@ -67,11 +69,10 @@ export default function GerenciarProdutosPage() {
   function iniciarEdicao(p: Produto) {
     setForm({
       idEditando: p.id,
+      adega_id: p.adega_id,
       nome: p.nome,
-      tipo_bebida: p.tipo_bebida,
-      preco_venda: p.preco_venda.toString().replace(".", ","),
-      marca: p.marca ?? "",
-      foto_url: p.foto_url ?? "",
+      categoria_id: p.catdegoria_id,
+      preco: p.preco.toString().replace(".", ","),
     });
   }
 
@@ -86,7 +87,7 @@ export default function GerenciarProdutosPage() {
 
     try {
       const precoNumber = parseFloat(
-        form.preco_venda.replace(".", "").replace(",", ".")
+        form.preco.replace(".", "").replace(",", ".")
       );
 
       if (isNaN(precoNumber)) {
@@ -96,11 +97,11 @@ export default function GerenciarProdutosPage() {
       }
 
       const payload = {
+        adega_id: form.adega_id,
         nome: form.nome,
-        tipo_bebida: form.tipo_bebida,
-        preco_venda: precoNumber,
-        marca: form.marca || undefined,
-        foto_url: form.foto_url || undefined,
+        categoria_id: form.categoria_id,
+        preco: precoNumber,
+
         ativo: true,
       };
 
@@ -149,12 +150,17 @@ export default function GerenciarProdutosPage() {
           <div className="flex items-center gap-2">
             <span className="text-2xl">🍷</span>
             <div>
-              <h1 className="text-xl font-semibold tracking-wide">
-                Diego's Adega
-              </h1>
-              <p className="text-xs text-zinc-400">
-                Administração de produtos da adega.
-              </p>
+              {/* <h1 className="text-xl font-semibold tracking-wide">
+                {adegaNome || "Minha Adega"} - Produtos
+              </h1> */}
+              <header className="mb-4">
+                <h1 className="text-xl font-semibold">
+                  {adegaNome || "Minha Adega"} - Produtos
+                </h1>
+                <p className="text-sm text-zinc-500">
+                  Olá, {userName} ({perfilNome})
+                </p>
+              </header>
             </div>
           </div>
 
@@ -204,7 +210,7 @@ export default function GerenciarProdutosPage() {
                   />
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="mb-1 block text-xs text-zinc-300">
                     Tipo de bebida
                   </label>
@@ -218,9 +224,9 @@ export default function GerenciarProdutosPage() {
                     className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
                     required
                   />
-                </div>
+                </div> */}
 
-                <div>
+                {/* <div>
                   <label className="mb-1 block text-xs text-zinc-300">
                     Marca (opcional)
                   </label>
@@ -232,7 +238,7 @@ export default function GerenciarProdutosPage() {
                     }
                     className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
                   />
-                </div>
+                </div> */}
 
                 <div>
                   <label className="mb-1 block text-xs text-zinc-300">
@@ -240,17 +246,17 @@ export default function GerenciarProdutosPage() {
                   </label>
                   <input
                     type="text"
-                    value={form.preco_venda}
+                    value={form.preco}
                     onChange={(e) =>
-                      handleChange("preco_venda", e.target.value)
+                      handleChange("preco", e.target.value)
                     }
-                    placeholder="79,90"
+                    placeholder="R$ 0,00"
                     className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
                     required
                   />
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="mb-1 block text-xs text-zinc-300">
                     URL da foto (opcional)
                   </label>
@@ -263,7 +269,7 @@ export default function GerenciarProdutosPage() {
                     placeholder="https://..."
                     className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
                   />
-                </div>
+                </div> */}
 
                 <div className="mt-3 flex gap-2">
                   <button
@@ -335,12 +341,12 @@ export default function GerenciarProdutosPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-zinc-400">
+                        {/* <p className="text-[11px] text-zinc-400">
                           {p.tipo_bebida}{" "}
                           {p.marca ? `• ${p.marca}` : ""}
-                        </p>
+                        </p> */}
                         <p className="text-[11px] text-emerald-300">
-                          R$ {p.preco_venda.toFixed(2)}
+                          R$ {p.preco}
                         </p>
                       </div>
 

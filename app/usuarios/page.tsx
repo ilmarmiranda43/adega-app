@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { obterUsuarioAtual, obterToken } from "@/lib/auth";
@@ -35,6 +36,7 @@ export default function ListaUsuariosPage() {
 
   const [autorizado, setAutorizado] = useState(false);
   const [verificandoPermissao, setVerificandoPermissao] = useState(true);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   // 1) Verifica se o usuário logado é Admin/Gerente
   useEffect(() => {
@@ -139,9 +141,19 @@ export default function ListaUsuariosPage() {
         {/* Cabeçalho */}
         <header className="flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
-            <h1 className="text-2xl font-semibold text-amber-300">
-              Usuários
-            </h1>
+            {/* <h1 className="text-2xl font-semibold text-amber-300">
+              {adegaNome || "Minha Adega"} - Usuários <br />
+            </h1> */}
+
+            <header className="mb-4">
+              <h1 className="text-xl font-semibold">
+                {adegaNome || "Minha Adega"} - Usuários
+              </h1>
+              <p className="text-sm text-zinc-500">
+                Olá, {userName} ({perfilNome})
+              </p>
+            </header>
+
             <p className="mt-1 text-sm text-zinc-400">
               Visualize todos os usuários cadastrados e seus perfis.
             </p>

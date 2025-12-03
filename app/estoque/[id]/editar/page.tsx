@@ -1,6 +1,7 @@
 // app/estoque/[id]/editar/page.tsx
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { API_BASE, getAuthToken } from "@/lib/api";
@@ -42,6 +43,7 @@ export default function EditarEstoquePage() {
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const { userName, perfilNome, adegaNome, user } = useAuth();
 
   // Carrega dados do item + lista de produtos
   useEffect(() => {
@@ -201,9 +203,17 @@ export default function EditarEstoquePage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-6">
-      <h1 className="mb-1 text-2xl font-semibold text-zinc-100">
-        Editar entrada de estoque
-      </h1>
+      {/* <h1 className="text-2xl font-bold text-amber-300">
+        {adegaNome || "Minha Adega"} - Editar entrada de estoque
+      </h1> */}
+      <header className="mb-4">
+        <h1 className="text-xl font-semibold">
+          {adegaNome || "Minha Adega"} - Editar entrada de estoque
+        </h1>
+        <p className="text-sm text-zinc-500">
+          Olá, {userName} ({perfilNome})
+        </p>
+      </header>
       <p className="mb-6 text-sm text-zinc-400">
         Ajuste as informações da entrada selecionada.
       </p>
