@@ -40,7 +40,7 @@ export type ProdutoUpdateInput = Partial<ProdutoCreateInput>;
 export type CategoriaUpdateInput = Partial<CategoriaCreateInput>;
 
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "https://adega-app-api.onrender.com";
+  process.env.NEXT_PUBLIC_API_URL || "https://adega-app-api.onrender.com";
 
 export function getAuthToken(): string | null {
   

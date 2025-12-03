@@ -11,7 +11,7 @@ import {
   type Categoria,
 } from "@/lib/api";
 
-import { listarPedidos } from "@/lib/api/pedidos"; // <-- NOVO
+import { listarPedidos } from "@/lib/api/pedidos";
 
 import { obterUsuarioAtual, limparSessao } from "@/lib/auth";
 
@@ -20,19 +20,16 @@ export default function Home() {
 
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [pedidos, setPedidos] = useState<any[]>([]); // <-- NOVO
+  const [pedidos, setPedidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // controla se já verificamos se o usuário está autenticado
   const [authChecked, setAuthChecked] = useState(false);
 
-  // nome de quem está logado
   const [userName, setUserName] = useState<string>("Usuário");
   const [perfil, setPerfil] = useState("");
 
-  // FUNÇÃO DE LOGOUT
   const handleLogout = () => {
-    limparSessao(); // limpa token + dados do usuário (na lib auth)
+    limparSessao();
     router.replace("/login");
   };
 
@@ -40,14 +37,16 @@ export default function Home() {
     async function carregarDashboard() {
       try {
         setLoading(true);
+
         const [prodData, catData, pedData] = await Promise.all([
           listarProdutos(),
           listarCategorias(),
-          listarPedidos(), // <-- NOVO
+          listarPedidos(), // TODOS veem TODOS os pedidos
         ]);
+
         setProdutos(prodData);
         setCategorias(catData);
-        setPedidos(pedData); // <-- NOVO
+        setPedidos(pedData);
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
@@ -55,22 +54,21 @@ export default function Home() {
       }
     }
 
-    const usuarioLogado =
-      typeof window !== "undefined" ? obterUsuarioAtual() : null;
+    const usuarioLogado: any =
+    typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
     if (!usuarioLogado) {
       router.replace("/login");
       return;
     }
 
-    // nome
-    const nomeDoUsuario =
-      usuarioLogado.nome ?? usuarioLogado.email ?? "Usuário";
+    const nomeDoUsuario: string =
+      usuarioLogado?.nome ?? usuarioLogado?.email ?? "Usuário";
+
     setUserName(nomeDoUsuario);
 
-    // perfil pode ser string ou objeto { nome, ... }
-    const perfilBruto = (usuarioLogado as any).perfil;
-    const perfilNome =
+    const perfilBruto: any = usuarioLogado?.perfil;
+    const perfilNome: string =
       typeof perfilBruto === "string" ? perfilBruto : perfilBruto?.nome ?? "";
 
     setPerfil(perfilNome);
@@ -79,12 +77,15 @@ export default function Home() {
     carregarDashboard();
   }, [router]);
 
-  // calcula pedidos abertos (se o backend usa status = "aberto")
+
   const pedidosAbertos = pedidos.filter(
     (p: any) => p.status?.toLowerCase() === "aberto"
   ).length;
 
-  // Enquanto ainda estamos verificando auth, mostra só uma tela de loading
+  const isAdminOrGerente =
+    perfil &&
+    ["administrador", "admin", "gerente"].includes(perfil.toLowerCase());
+
   if (!authChecked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
@@ -95,7 +96,6 @@ export default function Home() {
     );
   }
 
-  // resto da página igual ao seu código, com card extra de pedidos
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
@@ -118,7 +118,6 @@ export default function Home() {
               Painel da Adega
             </span>
 
-            {/* Info do usuário + Logout */}
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className="text-[11px] uppercase tracking-wide text-zinc-400">
@@ -136,7 +135,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-full border border-red-600/60 bg-red-900/30 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-red-200 hover:bg-red-800/40 transition"
+                className="rounded-full border border-red-600/60 bg-red-900/30 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-red-200 transition hover:bg-red-800/40"
               >
                 Sair
               </button>
@@ -147,54 +146,55 @@ export default function Home() {
         {/* CONTEÚDO PRINCIPAL */}
         <main className="flex flex-1 flex-col gap-10 md:flex-row md:items-stretch">
           {/* LADO ESQUERDO */}
-          <section className="md:w-3/5 space-y-6">
+          <section className="space-y-6 md:w-3/5">
             <div className="space-y-3">
               <h2 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
-                Organize sua <span className="text-amber-300">adega</span>{" "}
-                como um sommelier.
+                Organize sua <span className="text-amber-300">adega</span> como
+                um sommelier.
               </h2>
 
-              <p className="text-sm leading-relaxed text-zinc-300 sm:text-base max-w-xl">
+              <p className="max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
                 Cadastre rótulos, acompanhe o estoque, veja o que está saindo
                 mais e tenha o catálogo sempre à mão — no celular, tablet ou
                 computador. Perfeito para adegas, bares e pequenos comércios.
               </p>
             </div>
 
-            {/* BOTÕES PRINCIPAIS */}
-            <div className="flex flex-col gap-3 sm:flex-row">
-              {/* Catálogo */}
-              <Link href="/produtos" className="btn-primary">
-                Catálogo de Produtos
-              </Link>
-
-              {/* Gerenciador */}
-              <Link href="/produtos/gerenciar" className="btn-primary">
-                Gerenciador da Adega
-              </Link>
-
-              <Link href="/produtos/categorias" className="btn-primary">
-                Categorias Produtos
-              </Link>
-            </div>
-
-            {perfil &&
-              ["administrador", "admin", "gerente"].includes(
-                perfil.toLowerCase()
-              ) && (
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <Link href="/usuarios/cadastrar" className="btn-primary">
-                    Cadastrar usuário
+            {/* CARDS DE ATALHO / PAINEL */}
+            <div className="space-y-4">
+              {/* Atalhos principais */}
+              <div className="rounded-3xl border border-amber-500/25 bg-black/40 p-4 shadow-lg shadow-black/40">
+                <p className="mb-2 text-[11px] uppercase tracking-wide text-amber-200">
+                  Atalhos principais
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Link href="/produtos" className="btn-primary">
+                    Catálogo de Produtos
                   </Link>
 
-                  <Link href="/usuarios" className="btn-primary">
-                    Listar usuário
+                  <Link href="/produtos/gerenciar" className="btn-primary">
+                    Gerenciador da Adega
                   </Link>
 
-                  <Link href="/estoque" className="btn-primary">
-                    Estoque
+                  <Link href="/produtos/categorias" className="btn-primary">
+                    Categorias de Produtos
                   </Link>
 
+                  {isAdminOrGerente && (
+                    <Link href="/estoque" className="btn-primary">
+                      Estoque
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              {/* Operações do dia a dia */}
+              <div className="rounded-3xl border border-zinc-800 bg-zinc-950/70 p-4 shadow-lg shadow-black/30">
+                <p className="mb-2 text-[11px] uppercase tracking-wide text-zinc-400">
+                  Operações do dia a dia
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {/* ABERTO PARA TODOS */}
                   <Link href="/clientes" className="btn-primary">
                     Cadastrar Clientes
                   </Link>
@@ -202,8 +202,22 @@ export default function Home() {
                   <Link href="/pedidos" className="btn-primary">
                     Pedidos
                   </Link>
+
+                  {/* APENAS ADMIN / GERENTE */}
+                  {isAdminOrGerente && (
+                    <>
+                      <Link href="/usuarios/cadastrar" className="btn-primary">
+                        Cadastrar usuário
+                      </Link>
+
+                      <Link href="/usuarios" className="btn-primary">
+                        Listar usuário
+                      </Link>
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
+            </div>
           </section>
 
           {/* LADO DIREITO – CARD RESUMO */}
@@ -214,7 +228,7 @@ export default function Home() {
               </h3>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
                   <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
                     <p className="text-xs text-zinc-400">Produtos</p>
                     <p className="mt-2 text-2xl font-semibold text-amber-300">
@@ -236,7 +250,7 @@ export default function Home() {
                   </div>
 
                   <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
-                    <p className="text-xs text-zinc-400">Pedidos abertos</p>
+                    <p className="text-xs text-zinc-400">Pedidos</p>
                     <p className="mt-2 text-2xl font-semibold text-amber-300">
                       {loading ? "—" : pedidosAbertos}
                     </p>
