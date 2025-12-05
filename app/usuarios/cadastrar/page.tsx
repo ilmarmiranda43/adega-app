@@ -29,12 +29,14 @@ export default function CadastroUsuarioPage() {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [perfilId, setPerfilId] = useState<string>("");
-
+  
   const [carregandoPerfis, setCarregandoPerfis] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
   const { userName, perfilNome, adegaNome, user } = useAuth();
+
+  const adegaId = user?.adega_id;
 
   // 1) Verificar permissão
   useEffect(() => {
@@ -121,6 +123,14 @@ export default function CadastroUsuarioPage() {
       return;
     }
 
+    const token = obterToken();
+    console.log("O token é: " + token)
+    if (!token) {
+      setErro("Sessão expirada. Faça login novamente.");
+      router.replace("/login");
+      return;
+    }
+
     try {
       setSalvando(true);
 
@@ -128,12 +138,14 @@ export default function CadastroUsuarioPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           nome,
           email,
           senha,
           perfil_id: Number(perfilId),
+          adega_id: Number(adegaId),
         }),
       });
 

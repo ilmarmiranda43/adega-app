@@ -9,12 +9,11 @@ import { obterUsuarioAtual } from "@/lib/auth";
 
 type ItemEstoque = {
   id: number;
+  adega_id: number;
   produto_id: number;
   quantidade: number;
-  local?: string;
-  observacoes?: string;
-  data_entrada: string;
-  data_validade?: string;
+  minimo_alerta: string;
+  criado_em: string;
 };
 
 type Produto = {
@@ -110,14 +109,12 @@ export default function EstoquePage() {
     if (!texto) return true;
 
     const nomeProduto = obterNomeProduto(item.produto_id).toLowerCase();
-    const local = (item.local ?? "").toLowerCase();
-    const obs = (item.observacoes ?? "").toLowerCase();
-
+    const local = (item.minimo_alerta ?? "").toLowerCase();
+    
     return (
       nomeProduto.includes(texto) ||
       String(item.produto_id).includes(texto) ||
-      local.includes(texto) ||
-      obs.includes(texto)
+      local.includes(texto)
     );
   });
 
@@ -192,10 +189,8 @@ export default function EstoquePage() {
             <tr>
               <th className="px-4 py-3 text-left">Produto</th>
               <th className="px-4 py-3 text-left">Quantidade</th>
-              <th className="px-4 py-3 text-left">Local</th>
-              <th className="px-4 py-3 text-left">Observações</th>
-              <th className="px-4 py-3 text-left">Entrada</th>
-              <th className="px-4 py-3 text-left">Validade</th>
+              <th className="px-4 py-3 text-left">Mínimo Alerta</th>
+              <th className="px-4 py-3 text-left">Data Entrada</th>
               {isAdminOrManager && (
                 <th className="px-4 py-3 text-left">Ações</th>
               )}
@@ -217,18 +212,10 @@ export default function EstoquePage() {
                   {item.quantidade}
                 </td>
                 <td className="px-4 py-3 text-zinc-300">
-                  {item.local ?? "-"}
+                  {item.minimo_alerta ?? "-"}
                 </td>
                 <td className="px-4 py-3 text-zinc-300">
-                  {item.observacoes ?? "-"}
-                </td>
-                <td className="px-4 py-3 text-zinc-300">
-                  {new Date(item.data_entrada).toLocaleDateString("pt-BR")}
-                </td>
-                <td className="px-4 py-3 text-zinc-300">
-                  {item.data_validade
-                    ? new Date(item.data_validade).toLocaleDateString("pt-BR")
-                    : "-"}
+                  {new Date(item.criado_em).toLocaleDateString("pt-BR")}
                 </td>
 
                 {isAdminOrManager && (

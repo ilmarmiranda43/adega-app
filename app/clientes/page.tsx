@@ -106,11 +106,11 @@ export default function ClientesPage() {
             ← Home
           </button>
 
-          {isAdminOrManager && (
+          {/* {isAdminOrManager && ( */}
             <Link href="/clientes/cadastrar" className="btn-primary">
               Cadastrar Cliente
             </Link>
-          )}
+          {/* // )} */}
         </div>
       </div>
 

@@ -212,3 +212,41 @@ export async function excluirCategoria(id: number): Promise<void> {
     throw new Error("Erro ao excluir categoria");
   }
 }
+
+export async function postComAuth<T>(
+  path: string,
+  body: unknown
+): Promise<T> {
+  const token = getAuthToken();
+
+  if (!token) {
+    throw new Error("Nenhum token encontrado. Faça login novamente.");
+  }
+
+  const resp = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (resp.status === 401 || resp.status === 403) {
+    throw new Error("Você não tem permissão para executar esta ação.");
+  }
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    let detail = text;
+    try {
+      const json = JSON.parse(text);
+      detail = json.detail || JSON.stringify(json);
+    } catch {
+      // mantém o texto original
+    }
+    throw new Error(`Erro ao salvar: ${detail}`);
+  }
+
+  return resp.json();
+}

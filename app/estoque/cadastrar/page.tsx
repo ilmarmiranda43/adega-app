@@ -17,16 +17,17 @@ export default function CadastrarEstoquePage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [produtoId, setProdutoId] = useState("");
   const [quantidade, setQuantidade] = useState("");
-  const [local, setLocalizacao] = useState("");
+  const [minimo_alerta, setMinimo] = useState("");
   const [observacao, setObservacao] = useState("");
 
-  const [dataEntrada, setDataEntrada] = useState("");
+  const [criado_em, setDataEntrada] = useState("");
   const [dataValidade, setDataValidade] = useState("");
 
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
   const { userName, perfilNome, adegaNome, user } = useAuth();
+  const adegaCodigo = user?.adega_id;
 
   // Carregar produtos cadastrados + setar data de hoje
   useEffect(() => {
@@ -106,12 +107,11 @@ export default function CadastrarEstoquePage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          adega_id: adegaCodigo,
           produto_id: produtoIdNumber,
           quantidade: quantidadeNumber,
-          local: local || null,
-          observacoes: observacao || null,
-          data_entrada: dataEntrada || null,
-          data_validade: dataValidade || null,
+          minimo_alerta: minimo_alerta || 0,
+          criado_em: criado_em || null,
         }),
       });
 
@@ -211,20 +211,11 @@ export default function CadastrarEstoquePage() {
 
         <div>
           <label className="mb-1 block text-sm text-zinc-300">
-            Local
+            Mínimo Alerta
           </label>
           <input
-            value={local}
-            onChange={(e) => setLocalizacao(e.target.value)}
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm text-zinc-300">Observação</label>
-          <input
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
+            value={minimo_alerta}
+            onChange={(e) => setMinimo(e.target.value)}
             className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
           />
         </div>
@@ -236,23 +227,12 @@ export default function CadastrarEstoquePage() {
             </label>
             <input
               type="date"
-              value={dataEntrada}
+              value={criado_em}
               onChange={(e) => setDataEntrada(e.target.value)}
               className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-zinc-300">
-              Data de validade
-            </label>
-            <input
-              type="date"
-              value={dataValidade}
-              onChange={(e) => setDataValidade(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
-            />
-          </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

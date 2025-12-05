@@ -7,9 +7,8 @@ import {
   useState,
   ReactNode,
 } from "react";
-
-import { useRouter } from "next/navigation";
-import { obterUsuarioAtual } from "@/lib/auth"; // usa o seu helper atual
+import { useRouter, usePathname } from "next/navigation";
+import { obterUsuarioAtual } from "@/lib/auth";
 
 type AuthInfo = {
   loading: boolean;
@@ -31,25 +30,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const usuarioLogado =
+    // 1) Se estiver na página de login, não força redirect
+    if (pathname === "/login") {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        user: null,
+        userName: "",
+        perfilNome: "",
+        adegaNome: "",
+      }));
+      return;
+    }
+
+    // 2) Demais páginas: exige usuário logado
+    const usuarioLogado: any =
       typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
     if (!usuarioLogado) {
       router.replace("/login");
+      // já que vamos redirecionar, libera o loading pra não ficar travado
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        user: null,
+        userName: "",
+        perfilNome: "",
+        adegaNome: "",
+      }));
       return;
     }
 
-    // Nome do usuário
+    // 3) Se tem usuário, monta os dados
     const nomeDoUsuario: string =
       usuarioLogado?.nome ??
       usuarioLogado?.email ??
       usuarioLogado?.username ??
-      usuarioLogado?.adega_name ??
       "Usuário";
 
-    // Nome do perfil
     const perfilBruto: any =
       usuarioLogado?.perfil ?? usuarioLogado?.perfil_nome ?? null;
 
@@ -60,7 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       perfilNome = perfilBruto.nome ?? perfilBruto.descricao ?? "";
     }
 
-    // Nome da adega
     const adegaBruta: any =
       usuarioLogado?.adega ?? usuarioLogado?.adega_nome ?? null;
 
@@ -78,10 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       perfilNome,
       adegaNome,
     });
-  }, [router]);
+  }, [router, pathname]);
 
-  // Tela de "verificando acesso" centralizada
-  if (state.loading) {
+  // Só mostra “Verificando acesso…” em páginas protegidas,
+  // nunca na /login
+  if (state.loading && pathname !== "/login") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
         <p className="text-sm text-zinc-400">
@@ -96,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook para usar em qualquer página
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) {

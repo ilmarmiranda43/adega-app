@@ -26,10 +26,10 @@ export type PedidoCreate = {
 export type PedidoRead = {
   id: number;
   cliente_id: number;
-  data_criacao: string;
+  criado_em: string;
   status: string;
   observacoes?: string | null;
-  valor_total: string;
+  valor_liquido: string;
   itens: ItemPedidoRead[];
 };
 

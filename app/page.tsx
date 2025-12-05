@@ -113,6 +113,10 @@ export default function Home() {
     perfil &&
     ["administrador", "admin", "gerente"].includes(perfil.toLowerCase());
 
+  const isAdmin =
+    perfil &&
+    ["administrador", "admin"].includes(perfil.toLowerCase());
+
   // (Opcional) se você tiver outros perfis, pode criar mais flags:
   // const isAtendente = perfil && perfil.toLowerCase() === "atendente";
 
@@ -144,9 +148,25 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="rounded-full border border-amber-500/40 bg-amber-900/30 px-4 py-1 text-xs font-medium uppercase tracking-wide text-amber-200">
+            {/* <span className="rounded-full border border-amber-500/40 bg-amber-900/30 px-4 py-1 text-xs font-medium uppercase tracking-wide text-amber-200">
               Painel da Adega
-            </span>
+            </span> */}
+
+            {isAdmin && (
+              <>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="btn-primary"
+              >
+                Painel da Adega
+              </button>
+
+              </>
+            )
+
+            }
 
             <div className="flex items-center gap-3">
               <div className="text-right">

@@ -13,12 +13,11 @@ type Produto = {
 
 type ItemEstoque = {
   id: number;
+  adega_id:number;
   produto_id: number;
   quantidade: number;
-  local?: string;
-  observacoes?: string;
-  data_entrada: string;
-  data_validade?: string;
+  minimo_alerta: string;
+  criado_em: string;
 };
 
 export default function EditarEstoquePage() {
@@ -35,11 +34,10 @@ export default function EditarEstoquePage() {
 
   const [produtoId, setProdutoId] = useState("");
   const [quantidade, setQuantidade] = useState("");
-  const [local, setLocal] = useState("");
-  const [observacoes, setObservacoes] = useState("");
-  const [dataEntrada, setDataEntrada] = useState("");
-  const [dataValidade, setDataValidade] = useState("");
-
+  const [minimo_alerta, setMinimo] = useState("");
+  
+  const [criado_em, setDataEntrada] = useState("");
+  
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -100,13 +98,9 @@ export default function EditarEstoquePage() {
 
         setProdutoId(String(dadosItem.produto_id));
         setQuantidade(String(dadosItem.quantidade));
-        setLocal(dadosItem.local ?? "");
-        setObservacoes(dadosItem.observacoes ?? "");
+        setMinimo(dadosItem.minimo_alerta ?? "");
         setDataEntrada(
-          dadosItem.data_entrada ? dadosItem.data_entrada.slice(0, 10) : ""
-        );
-        setDataValidade(
-          dadosItem.data_validade ? dadosItem.data_validade.slice(0, 10) : ""
+          dadosItem.criado_em ? dadosItem.criado_em.slice(0, 10) : ""
         );
       } catch (error: any) {
         setErro(error.message ?? "Erro ao carregar dados.");
@@ -150,10 +144,10 @@ export default function EditarEstoquePage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          adega_id: Number(user?.adega_id),
+          produto_id: produtoId,
           quantidade: quantidadeNumber,
-          local: local || null,
-          data_validade: dataValidade || null,
-          observacoes: observacoes || null,
+          minimo_alerta: minimo_alerta || null,
         }),
       });
 
@@ -268,23 +262,12 @@ export default function EditarEstoquePage() {
 
         <div>
           <label className="mb-1 block text-sm text-zinc-300">
-            Localização
+            Mínimo Alerta
           </label>
           <input
-            value={local}
-            onChange={(e) => setLocal(e.target.value)}
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm text-zinc-300">
-            Observações
-          </label>
-          <textarea
-            value={observacoes}
-            onChange={(e) => setObservacoes(e.target.value)}
-            rows={3}
+            type="number"
+            value={minimo_alerta}
+            onChange={(e) => setMinimo(e.target.value)}
             className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
           />
         </div>
@@ -296,24 +279,13 @@ export default function EditarEstoquePage() {
             </label>
             <input
               type="date"
-              value={dataEntrada}
+              value={criado_em}
               readOnly
               disabled
               className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-400 outline-none"
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-zinc-300">
-              Data de validade
-            </label>
-            <input
-              type="date"
-              value={dataValidade}
-              onChange={(e) => setDataValidade(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
-            />
-          </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

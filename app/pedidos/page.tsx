@@ -147,11 +147,11 @@ export default function PedidosPage() {
                   <td className="px-3 py-2">{p.id}</td>
                   <td className="px-3 py-2">{p.cliente_id}</td>
                   <td className="px-3 py-2">
-                    {new Date(p.data_criacao).toLocaleString("pt-BR")}
+                    {new Date(p.criado_em).toLocaleDateString("pt-BR")}
                   </td>
                   <td className="px-3 py-2 capitalize">{p.status}</td>
                   <td className="px-3 py-2 text-right">
-                    R$ {Number(p.valor_total).toFixed(2)}
+                    R$ {Number(p.valor_liquido).toFixed(2)}
                   </td>
                   <td className="px-3 py-2 capitalize">{p.observacoes}</td>
                   <td className="px-3 py-2 text-right space-x-2">
