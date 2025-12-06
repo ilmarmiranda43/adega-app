@@ -100,7 +100,7 @@ export default function NovaAdegaPage() {
               value={form.nome}
               onChange={handleChange}
               className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-              placeholder="Adega da NANA"
+              placeholder="Digite o nome da Adega"
             />
           </div>
 
@@ -120,7 +120,7 @@ export default function NovaAdegaPage() {
               value={form.cnpj}
               onChange={handleChange}
               className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-              placeholder="12.345.678/0001-90"
+              placeholder="Digite o CNPJ "
             />
           </div>
 
@@ -140,7 +140,7 @@ export default function NovaAdegaPage() {
               value={form.telefone}
               onChange={handleChange}
               className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-              placeholder="(11) 99999-0001"
+              placeholder="Digite o Telefone da Adega"
             />
           </div>
 
@@ -160,7 +160,7 @@ export default function NovaAdegaPage() {
               value={form.email}
               onChange={handleChange}
               className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-              placeholder="contato@adeganana.com"
+              placeholder="Digite um e-mail de contato"
             />
           </div>
 
@@ -180,10 +180,10 @@ export default function NovaAdegaPage() {
               value={form.whatsapp_numero}
               onChange={handleChange}
               className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-              placeholder="+5511999997456"
+              placeholder="Digite um número de WhatsApp válido"
             />
             <p className="mt-1 text-xs text-zinc-500">
-              Use o formato internacional com DDI. Ex: +55...
+              Use o formato internacional com DDI. Ex: +5511999995555
             </p>
           </div>
 

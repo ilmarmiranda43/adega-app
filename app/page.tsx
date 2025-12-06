@@ -27,7 +27,7 @@ export default function Home() {
 
   const [userName, setUserName] = useState<string>("Usuário");
   const [perfil, setPerfil] = useState<string>("");
-  const [adegaNome, setAdegaNome] = useState<string>(""); 
+  const [adegaNome, setAdegaNome] = useState<string>("");
 
   const handleLogout = () => {
     limparSessao();
@@ -108,23 +108,25 @@ export default function Home() {
     (p: any) => p.status?.toLowerCase() === "aberto"
   ).length;
 
-  // Regra de acesso: ADMIN / GERENTE
+  // Regras de acesso
   const isAdminOrGerente =
     perfil &&
-    ["administrador", "admin", "gerente"].includes(perfil.toLowerCase());
+    ["administrador", "admin", "gerente", "master"].includes(perfil.toLowerCase());
 
   const isAdmin =
     perfil &&
     ["administrador", "admin"].includes(perfil.toLowerCase());
 
-  // (Opcional) se você tiver outros perfis, pode criar mais flags:
-  // const isAtendente = perfil && perfil.toLowerCase() === "atendente";
+  // PERFIL MASTER (somente quem pode cadastrar adega)
+  const isMaster =
+    perfil &&
+    ["master", "superadmin", "dono"].includes(perfil.toLowerCase());
 
   if (!authChecked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
         <p className="text-sm text-zinc-400">
-          Verificando acesso à Diego&apos;s Adega...
+          Verificando acesso à Adega...
         </p>
       </div>
     );
@@ -148,25 +150,17 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* <span className="rounded-full border border-amber-500/40 bg-amber-900/30 px-4 py-1 text-xs font-medium uppercase tracking-wide text-amber-200">
-              Painel da Adega
-            </span> */}
-
-            {isAdmin && (
-              <>
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="btn-primary"
-              >
-                Painel da Adega
-              </button>
-
-              </>
-            )
-
-            }
+            {/* DIV visível apenas para o perfil MASTER */}
+            {isMaster && (
+              <div>
+                <Link href="/adegas/nova" className="btn-primary">
+                  Cadastrar Adega
+                </Link>
+                <Link href="/adegas" className="btn-primary">
+                  Listar Adega
+                </Link>
+              </div>
+            )}
 
             <div className="flex items-center gap-3">
               <div className="text-right">
@@ -223,7 +217,7 @@ export default function Home() {
                     Catálogo de Produtos
                   </Link>
 
-                  {/* Gerenciador e Categorias: apenas Admin / Gerente */}
+                  {/* Gerenciador, Categorias, Estoque: apenas Admin / Gerente */}
                   {isAdminOrGerente && (
                     <>
                       <Link href="/produtos/gerenciar" className="btn-primary">
@@ -251,7 +245,7 @@ export default function Home() {
                   Operações do dia a dia
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {/* Clientes e Pedidos: regra de negócio pode ser aberta para mais perfis */}
+                  {/* Clientes e Pedidos */}
                   <Link href="/clientes" className="btn-primary">
                     Cadastrar / Listar Clientes
                   </Link>
@@ -260,7 +254,7 @@ export default function Home() {
                     Pedidos
                   </Link>
 
-                  {/* Usuários: somente Admin / Gerente (combina com as rules do backend) */}
+                  {/* Usuários: somente Admin / Gerente */}
                   {isAdminOrGerente && (
                     <>
                       <Link href="/usuarios/cadastrar" className="btn-primary">
@@ -333,7 +327,7 @@ export default function Home() {
         </main>
 
         <footer className="mt-8 border-t border-zinc-800 pt-4 text-center text-xs text-zinc-500">
-          {adegaNome ? adegaNome : "Diego&apos;s Adega"} • Projeto em
+          {adegaNome ? adegaNome : "Adegas"} • Projeto em
           desenvolvimento •{" "}
           <span className="text-amber-300">frontend Next.js</span>
         </footer>

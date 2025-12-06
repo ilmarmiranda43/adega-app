@@ -56,7 +56,8 @@ export default function CadastroUsuarioPage() {
 
     const perfilNormalizado = (perfilNome || "").toLowerCase();
 
-    if (perfilNormalizado === "administrador" || perfilNormalizado === "admin" || perfilNormalizado === "gerente") {
+    if (perfilNormalizado === "administrador" || perfilNormalizado === "admin" 
+        || perfilNormalizado === "gerente" || perfilNormalizado === "master") {
       setAutorizado(true);
     } else {
       setAutorizado(false);
