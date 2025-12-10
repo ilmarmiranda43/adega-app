@@ -33,8 +33,26 @@ export type CategoriaCreateInput = {
   descricao?: string;
 };
 
+export type Adega = {
+  id: number;
+  nome: string;
+};
+
+export type Perfil = {
+  id: number;
+  adega_id: number;
+  nome: string;
+  descricao: string | null;
+  eh_admin: boolean;
+  pode_gerenciar_usuarios: boolean;
+  pode_gerenciar_estoque: boolean;
+  pode_gerenciar_clientes: boolean;
+  ativo: boolean;
+};
+
 export type ProdutoUpdateInput = Partial<ProdutoCreateInput>;
 export type CategoriaUpdateInput = Partial<CategoriaCreateInput>;
+export type PerfilCreateInput = Omit<Perfil, "id">;
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "https://adega-app-api.onrender.com";
@@ -316,4 +334,83 @@ export async function postComAuth<T>(
   }
 
   return resp.json();
+}
+
+/* =========================
+   ADEGAS
+   ========================= */
+export async function listarAdegas(): Promise<Adega[]> {
+  const res = await fetch(`${API_BASE}/adegas/`, {
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error("Erro ao listar adegas");
+  }
+  return res.json();
+}
+
+
+/* =========================
+   PERFIS
+   ========================= */
+
+export async function listarPerfis(adegaId?: number): Promise<Perfil[]> {
+  const params = adegaId ? `?adega_id=${adegaId}` : "";
+  const res = await fetch(`${API_BASE}/perfis/${params}`, {
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error("Erro ao listar perfis");
+  }
+  return res.json();
+}
+
+export async function criarPerfil(dados: PerfilCreateInput): Promise<Perfil> {
+  const res = await fetch(`${API_BASE}/perfis/`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(dados),
+  });
+
+  if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao criar perfil:", res.status, texto);
+    throw new Error("Erro ao criar perfil");
+  }
+
+  return res.json();
+}
+
+export async function atualizarPerfil(
+  id: number,
+  dados: Partial<PerfilCreateInput>
+): Promise<Perfil> {
+  const res = await fetch(`${API_BASE}/perfis/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(dados),
+  });
+
+  if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao atualizar perfil:", res.status, texto);
+    throw new Error("Erro ao atualizar perfil");
+  }
+
+  return res.json();
+}
+
+export async function excluirPerfil(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/perfis/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao excluir perfil:", res.status, texto);
+    throw new Error("Erro ao excluir perfil");
+  }
 }

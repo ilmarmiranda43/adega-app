@@ -159,6 +159,9 @@ export default function Home() {
                 <Link href="/adegas" className="btn-primary">
                   Listar Adega
                 </Link>
+                <Link href="/perfis/gerenciar" className="btn-primary">
+                  Cadastrar Perfis
+                </Link>
               </div>
             )}
 
