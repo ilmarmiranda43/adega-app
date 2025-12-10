@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/context/AuthContext";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -10,7 +10,9 @@ import {
   atualizarProduto,
   excluirProduto,
   alternarAtivo,
+  listarCategorias,   // 👈 novo
   Produto,
+  Categoria,          // 👈 novo
 } from "@/lib/api";
 
 type FormState = {
@@ -32,6 +34,7 @@ const formStateDefault: FormState = {
 
 export default function GerenciarProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]); // 👈 novo
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -52,8 +55,19 @@ export default function GerenciarProdutosPage() {
     }
   }
 
+  // 👇 novo: carregar categorias
+  async function carregarCategorias() {
+    try {
+      const data = await listarCategorias();
+      setCategorias(data);
+    } catch (e) {
+      console.error("Erro ao carregar categorias:", e);
+    }
+  }
+
   useEffect(() => {
     carregarProdutos();
+    carregarCategorias(); // 👈 chama junto
   }, []);
 
   function handleChange(
@@ -71,7 +85,7 @@ export default function GerenciarProdutosPage() {
       idEditando: p.id,
       adega_id: p.adega_id,
       nome: p.nome,
-      categoria_id: p.catdegoria_id,
+      categoria_id: p.categoria_id,
       preco: p.preco.toString().replace(".", ","),
     });
   }
@@ -96,12 +110,17 @@ export default function GerenciarProdutosPage() {
         return;
       }
 
+      if (form.categoria_id === null) {
+        setErro("Selecione uma categoria.");
+        setSalvando(false);
+        return;
+      }
+
       const payload = {
         adega_id: form.adega_id,
         nome: form.nome,
         categoria_id: form.categoria_id,
         preco: precoNumber,
-
         ativo: true,
       };
 
@@ -150,9 +169,6 @@ export default function GerenciarProdutosPage() {
           <div className="flex items-center gap-2">
             <span className="text-2xl">🍷</span>
             <div>
-              {/* <h1 className="text-xl font-semibold tracking-wide">
-                {adegaNome || "Minha Adega"} - Produtos
-              </h1> */}
               <header className="mb-4">
                 <h1 className="text-xl font-semibold">
                   {adegaNome || "Minha Adega"} - Produtos
@@ -195,6 +211,33 @@ export default function GerenciarProdutosPage() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-3 text-sm">
+                
+                {/* 👇 novo campo: categoria */}
+                <div>
+                  <label className="mb-1 block text-xs text-zinc-300">
+                    Categoria
+                  </label>
+                  <select
+                    value={form.categoria_id ?? ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      handleChange(
+                        "categoria_id",
+                        value === "" ? null : Number(value)
+                      );
+                    }}
+                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                    required
+                  >
+                    <option value="">Selecione uma categoria</option>
+                    {categorias.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
                 <div>
                   <label className="mb-1 block text-xs text-zinc-300">
                     Nome
@@ -209,36 +252,6 @@ export default function GerenciarProdutosPage() {
                     required
                   />
                 </div>
-
-                {/* <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
-                    Tipo de bebida
-                  </label>
-                  <input
-                    type="text"
-                    value={form.tipo_bebida}
-                    onChange={(e) =>
-                      handleChange("tipo_bebida", e.target.value)
-                    }
-                    placeholder="Vinho tinto, cerveja, destilado..."
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
-                    required
-                  />
-                </div> */}
-
-                {/* <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
-                    Marca (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={form.marca}
-                    onChange={(e) =>
-                      handleChange("marca", e.target.value)
-                    }
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
-                  />
-                </div> */}
 
                 <div>
                   <label className="mb-1 block text-xs text-zinc-300">
@@ -255,21 +268,6 @@ export default function GerenciarProdutosPage() {
                     required
                   />
                 </div>
-
-                {/* <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
-                    URL da foto (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={form.foto_url}
-                    onChange={(e) =>
-                      handleChange("foto_url", e.target.value)
-                    }
-                    placeholder="https://..."
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
-                  />
-                </div> */}
 
                 <div className="mt-3 flex gap-2">
                   <button
@@ -341,10 +339,6 @@ export default function GerenciarProdutosPage() {
                             </span>
                           )}
                         </div>
-                        {/* <p className="text-[11px] text-zinc-400">
-                          {p.tipo_bebida}{" "}
-                          {p.marca ? `• ${p.marca}` : ""}
-                        </p> */}
                         <p className="text-[11px] text-emerald-300">
                           R$ {p.preco}
                         </p>

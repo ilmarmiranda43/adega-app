@@ -4,6 +4,7 @@ export type Usuario = {
   id: number;
   nome: string;
   email: string;
+  adega_id: number;
   // perfil: "admin" | "gerente" | "usuario" | "cliente" | string;
   perfil?: string | { nome?: string; descricao?: string };
   username?: string;

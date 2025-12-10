@@ -1,4 +1,3 @@
-// app/clientes/cadastrar/page.tsx
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
@@ -11,14 +10,20 @@ export default function CadastrarClientePage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [ehWhatsapp, setEhWhatsapp] = useState(true);      // 👈 novo
+  const [observacoes, setObservacoes] = useState("");      // 👈 novo
+
+  // você pode manter cidade/estado na UI se quiser,
+  // mas não vou enviar pro backend porque o modelo não espera
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
+
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { userName, perfilNome, adegaNome, user } = useAuth();
 
-   function handleCancelar() {
-    router.back(); // volta pra página anterior
+  function handleCancelar() {
+    router.back();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -31,6 +36,11 @@ export default function CadastrarClientePage() {
       return;
     }
 
+    if (!user?.adega_id) {
+      setErro("Não foi possível identificar a adega do usuário.");
+      return;
+    }
+
     try {
       setLoading(true);
       const resp = await fetch(`${API_BASE}/clientes/`, {
@@ -40,11 +50,12 @@ export default function CadastrarClientePage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          adega_id: user.adega_id,                 // 👈 o que o back espera
           nome,
           email: email || null,
           telefone: telefone || null,
-          cidade: cidade || null,
-          estado: estado || null,
+          eh_whatsapp: ehWhatsapp,                 // 👈 boolean
+          observacoes: observacoes || null,        // 👈 string / null
         }),
       });
 
@@ -71,9 +82,6 @@ export default function CadastrarClientePage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-6">
-      {/* <h1 className="text-2xl font-semibold text-amber-200 mb-1">
-        {adegaNome || "Minha Adega"} - Cadastrar cliente
-      </h1> */}
       <header className="mb-4">
         <h1 className="text-xl font-semibold">
           {adegaNome || "Minha Adega"} - Cadastrar Cliente
@@ -82,19 +90,19 @@ export default function CadastrarClientePage() {
           Olá, {userName} ({perfilNome})
         </p>
       </header>
-      <p className="text-sm text-zinc-400 mb-6">
+      <p className="mb-6 text-sm text-zinc-400">
         Preencha os dados do novo cliente.
       </p>
 
-      <div className="flex justify-end gap-3 sm:flex-row">
-            <button
-            type="button"
-            onClick={handleCancelar}
-            className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-950 hover:bg-amber-400 transition"
-          >
-            ← Home
-          </button>
-        </div>
+      <div className="mb-4 flex justify-end gap-3 sm:flex-row">
+        <button
+          type="button"
+          onClick={handleCancelar}
+          className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-950 transition hover:bg-amber-400"
+        >
+          ← Home
+        </button>
+      </div>
 
       {erro && (
         <div className="mb-4 rounded-xl border border-red-700 bg-red-950/40 px-4 py-3 text-sm text-red-200">
@@ -132,24 +140,32 @@ export default function CadastrarClientePage() {
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2">
-            <label className="mb-1 block text-sm text-zinc-300">Cidade</label>
-            <input
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-zinc-300">Estado</label>
-            <input
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
-              maxLength={2}
-              value={estado}
-              onChange={(e) => setEstado(e.target.value.toUpperCase())}
-            />
-          </div>
+        {/* checkbox eh_whatsapp */}
+        <div className="flex items-center gap-2">
+          <input
+            id="eh_whatsapp"
+            type="checkbox"
+            className="h-4 w-4 rounded border-zinc-600 bg-zinc-900"
+            checked={ehWhatsapp}
+            onChange={(e) => setEhWhatsapp(e.target.checked)}
+          />
+          <label
+            htmlFor="eh_whatsapp"
+            className="text-sm text-zinc-300"
+          >
+            Telefone é WhatsApp?
+          </label>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm text-zinc-300">
+            Observações
+          </label>
+          <textarea
+            className="h-24 w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+          />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

@@ -1,16 +1,19 @@
 // lib/api.ts
+import { obterUsuarioAtual } from "./auth";
 
 export type Produto = {
   id: number;
   adega_id: number;
   nome: string;
-  catdegoria_id: number;
+  // corrigindo typo aqui:
+  categoria_id: number;
   preco: number;
   ativo?: boolean;
 };
 
 export type ProdutoCreateInput = {
   id?: number;
+  // no backend multi-tenant você pode ignorar isso e usar o adega_id do usuário
   adega_id: number | null;
   nome: string;
   categoria_id: number | null;
@@ -22,9 +25,10 @@ export type Categoria = {
   id: number;
   nome: string;
   descricao?: string | null;
-}
+};
 
 export type CategoriaCreateInput = {
+  adega_id?: number | null;
   nome: string;
   descricao?: string;
 };
@@ -36,30 +40,50 @@ export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "https://adega-app-api.onrender.com";
 
 export function getAuthToken(): string | null {
-  
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("adega_token");
-
   if (!raw) return null;
-
   return raw;
-
-  // try {
-  //   const sessao = JSON.parse(raw);
-
-  //   return sessao?.token ?? null;
-  // } catch {
-  //   return null;
-  // }
 }
+
+// helperzinho pra não repetir código nos headers
+function getAuthHeaders(extra: HeadersInit = {}): HeadersInit {
+  const token = getAuthToken();
+
+  const base: HeadersInit = {
+    "Content-Type": "application/json",
+    ...extra,
+  };
+
+  if (token) {
+    return {
+      ...base,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
+  return base;
+}
+
+/* =========================
+   PRODUTOS
+   ========================= */
 
 // LISTAR
 export async function listarProdutos(): Promise<Produto[]> {
   const res = await fetch(`${API_BASE}/produtos/`, {
-    next: { revalidate: 0 },
+    method: "GET",
+    headers: getAuthHeaders(), // já inclui token se existir
   });
 
   if (!res.ok) {
+    const texto = await res.text();
+    console.error(
+      "Falha ao listar produtos. Status:",
+      res.status,
+      "Body:",
+      texto
+    );
     throw new Error("Erro ao carregar produtos");
   }
 
@@ -70,20 +94,39 @@ export async function listarProdutos(): Promise<Produto[]> {
 export async function criarProduto(
   dados: ProdutoCreateInput
 ): Promise<Produto> {
+  const usuario =
+    typeof window !== "undefined" ? obterUsuarioAtual() : null;
+
+  const payload: ProdutoCreateInput = {
+    ...dados,
+    // força usar a adega do usuário logado
+    adega_id: usuario?.adega_id ?? dados.adega_id ?? null,
+    // garante que vai número se vier como string
+    categoria_id:
+      dados.categoria_id !== null && dados.categoria_id !== undefined
+        ? Number(dados.categoria_id)
+        : dados.categoria_id,
+    preco: Number(dados.preco),
+  };
+
   const res = await fetch(`${API_BASE}/produtos/`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(dados),
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao criar produto:", res.status, texto);
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Você não tem permissão para criar produtos.");
+    }
     throw new Error("Erro ao criar produto");
   }
 
   return res.json();
 }
+
 
 // ATUALIZAR
 export async function atualizarProduto(
@@ -92,13 +135,16 @@ export async function atualizarProduto(
 ): Promise<Produto> {
   const res = await fetch(`${API_BASE}/produtos/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(dados),
   });
 
   if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao atualizar produto:", res.status, texto);
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Você não tem permissão para atualizar produtos.");
+    }
     throw new Error("Erro ao atualizar produto");
   }
 
@@ -109,9 +155,15 @@ export async function atualizarProduto(
 export async function excluirProduto(id: number): Promise<void> {
   const res = await fetch(`${API_BASE}/produtos/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao excluir produto:", res.status, texto);
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Você não tem permissão para excluir produtos.");
+    }
     throw new Error("Erro ao excluir produto");
   }
 }
@@ -124,26 +176,14 @@ export async function alternarAtivo(
   return atualizarProduto(id, { ativo });
 }
 
-// Rotas de Categorias daqui pra baixo
+/* =========================
+   CATEGORIAS
+   ========================= */
 
 export async function listarCategorias(): Promise<Categoria[]> {
-  const headers: HeadersInit = {};
-
-  // Só existe window/localStorage no cliente
-  if (typeof window !== "undefined") {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("adega_token");
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    } else {
-      console.warn("listarCategorias: nenhum token encontrado no localStorage");
-    }
-  }
-
   const res = await fetch(`${API_BASE}/categorias/`, {
     method: "GET",
-    headers,
+    headers: getAuthHeaders({}), // mantém token
     next: { revalidate: 0 },
   });
 
@@ -157,7 +197,9 @@ export async function listarCategorias(): Promise<Categoria[]> {
     );
 
     if (res.status === 401 || res.status === 403) {
-      throw new Error("Não autorizado ao carregar categorias. Faça login novamente.");
+      throw new Error(
+        "Não autorizado ao carregar categorias. Faça login novamente."
+      );
     }
 
     throw new Error("Erro ao carregar categorias");
@@ -169,15 +211,27 @@ export async function listarCategorias(): Promise<Categoria[]> {
 export async function criarCategoria(
   dados: CategoriaCreateInput
 ): Promise<Categoria> {
+  const usuario =
+    typeof window !== "undefined" ? obterUsuarioAtual() : null;
+
+  // Garante que o adega_id vá no corpo da requisição
+  const payload: CategoriaCreateInput = {
+    ...dados,
+    adega_id: usuario?.adega_id ?? dados.adega_id ?? undefined,
+  };
+
   const res = await fetch(`${API_BASE}/categorias/`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(dados),
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao criar categoria:", res.status, texto);
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Você não tem permissão para criar categorias.");
+    }
     throw new Error("Erro ao criar categoria");
   }
 
@@ -190,13 +244,16 @@ export async function atualizarCategoria(
 ): Promise<Categoria> {
   const res = await fetch(`${API_BASE}/categorias/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(dados),
   });
 
   if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao atualizar categoria:", res.status, texto);
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Você não tem permissão para atualizar categorias.");
+    }
     throw new Error("Erro ao atualizar categoria");
   }
 
@@ -206,12 +263,22 @@ export async function atualizarCategoria(
 export async function excluirCategoria(id: number): Promise<void> {
   const res = await fetch(`${API_BASE}/categorias/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
+    const texto = await res.text();
+    console.error("Erro ao excluir categoria:", res.status, texto);
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Você não tem permissão para excluir categorias.");
+    }
     throw new Error("Erro ao excluir categoria");
   }
 }
+
+/* =========================
+   POST genérico com auth
+   ========================= */
 
 export async function postComAuth<T>(
   path: string,
@@ -241,7 +308,7 @@ export async function postComAuth<T>(
     let detail = text;
     try {
       const json = JSON.parse(text);
-      detail = json.detail || JSON.stringify(json);
+      detail = (json as any).detail || JSON.stringify(json);
     } catch {
       // mantém o texto original
     }
