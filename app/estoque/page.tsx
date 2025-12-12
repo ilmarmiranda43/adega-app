@@ -97,7 +97,7 @@ export default function EstoquePage() {
   }, [router]);
 
   const isAdminOrManager =
-    usuario && (usuario.perfil_id === 1 || usuario.perfil_id === 2);
+    usuario && (usuario.perfil_id === 1 || usuario.perfil_id === 2 || usuario.perfil_id === 7);
 
   function obterNomeProduto(produto_id: number): string {
     const prod = produtos.find((p) => p.id === produto_id);

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { obterUsuarioAtual, limparSessao } from "@/lib/auth";
+
 import {
   listarAdegas,
   listarPerfis,
@@ -46,11 +48,32 @@ export default function GerenciarPerfisPage() {
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  const perfisFiltrados =
+  form.adega_id === ""
+    ? []
+    : perfis.filter((p) => p.adega_id === Number(form.adega_id));
+
   const { user, userName } = useAuth();
   const router = useRouter();
 
   // 🔒 Só MASTER pode acessar
-  if (user && user.papel !== "master") {
+    const usuarioLogado: any =
+        typeof window !== "undefined" ? obterUsuarioAtual() : null;
+
+    const perfilBruto: any =
+      usuarioLogado?.perfil ?? usuarioLogado?.perfil_nome ?? null;
+    
+    let perfilNome = "";
+
+    if (typeof perfilBruto === "string") {
+      perfilNome = perfilBruto;
+    } else if (perfilBruto && typeof perfilBruto === "object") {
+      perfilNome = perfilBruto.nome ?? perfilBruto.descricao ?? "";
+    }
+
+  console.log("Valores de perfil : " + perfilNome )
+
+  if (perfilNome !== "Master") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
         <div className="rounded-2xl border border-red-700 bg-red-950/40 px-6 py-4 text-center">
@@ -381,7 +404,7 @@ export default function GerenciarPerfisPage() {
                 <span className="text-xs text-zinc-400">
                   Total:{" "}
                   <span className="font-semibold text-amber-200">
-                    {loading ? "—" : perfis.length}
+                    {loading ? "—" : perfisFiltrados.length}
                   </span>
                 </span>
               </div>
@@ -394,13 +417,13 @@ export default function GerenciarPerfisPage() {
                 <p className="text-sm text-zinc-300">
                   Carregando perfis...
                 </p>
-              ) : perfis.length === 0 ? (
+              ) : perfisFiltrados.length === 0 ? (
                 <p className="text-sm text-zinc-300">
-                  Nenhum perfil cadastrado para esta adega.
+                    Nenhum perfil cadastrado para esta adega.
                 </p>
-              ) : (
+                ) : (
                 <div className="space-y-2 text-xs sm:text-sm">
-                  {perfis.map((p) => (
+                    {perfisFiltrados.map((p) => (
                     <div
                       key={p.id}
                       className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 sm:flex-row sm:items-center sm:justify-between"

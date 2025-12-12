@@ -136,6 +136,8 @@ export default function PedidosPage() {
                 <th className="px-3 py-2 text-left">Cliente</th>
                 <th className="px-3 py-2 text-left">Data</th>
                 <th className="px-3 py-2 text-left">Status</th>
+                <th className="px-3 py-2 text-left">Quantidade</th>
+                <th className="px-3 py-2 text-left">Preço Unitário</th>
                 <th className="px-3 py-2 text-right">Total</th>
                 <th className="px-3 py-2 text-right">Observações</th>
                 <th className="px-3 py-2 text-right">Ações</th>
@@ -150,6 +152,17 @@ export default function PedidosPage() {
                     {new Date(p.criado_em).toLocaleDateString("pt-BR")}
                   </td>
                   <td className="px-3 py-2 capitalize">{p.status}</td>
+
+                  <td className="px-3 py-2">
+                    {p.itens.reduce((total, item) => total + item.quantidade, 0)}
+                  </td>
+
+                  <td className="px-3 py-2">
+                    {p.itens.length > 0
+                      ? `R$ ${Number(p.itens[0].preco_unitario).toFixed(2)}`
+                      : "-"}
+                  </td>
+
                   <td className="px-3 py-2 text-right">
                     R$ {Number(p.valor_liquido).toFixed(2)}
                   </td>

@@ -71,7 +71,7 @@ export default function ClientesPage() {
 
   const isAdminOrManager =
     usuario &&
-    (usuario.perfil_id === 1 || usuario.perfil_id === 2);
+    (usuario.perfil_id === 1 || usuario.perfil_id === 2 || usuario.perfil_id === 7 );
 
   if (loading)
     return <p className="p-4 text-zinc-200">Carregando clientes...</p>;
