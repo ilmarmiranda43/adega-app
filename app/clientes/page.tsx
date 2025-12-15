@@ -124,6 +124,7 @@ export default function ClientesPage() {
               <th className="px-4 py-3 text-left">Telefone</th>
               <th className="px-4 py-3 text-left">Endereço</th>
               <th className="px-4 py-3 text-left">Observação</th>
+              <th className="px-4 py-3 text-left">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
@@ -140,13 +141,27 @@ export default function ClientesPage() {
                 <td className="px-4 py-3 text-zinc-300">
                   {c.observacoes ?? "-"}
                 </td>
+                <td className="px-4 py-3">
+                  {isAdminOrManager ? (
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/clientes/${c.id}/editar`)}
+                      className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-100 hover:bg-zinc-800"
+                    >
+                      Editar
+                    </button>
+                  ) : (
+                    <span className="text-xs text-zinc-500">—</span>
+                  )}
+                </td>
+
               </tr>
             ))}
 
             {clientes.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="px-4 py-6 text-center text-zinc-500"
                 >
                   Nenhum cliente cadastrado.
