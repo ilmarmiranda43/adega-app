@@ -263,11 +263,13 @@ export default function AdegasPage() {
                       <th className="px-3 py-2">Telefone</th>
                       <th className="px-3 py-2">WhatsApp</th>
                       <th className="px-3 py-2">E-mail</th>
-                      <th className="px-3 py-2 text-center">
-                        Notificações
-                      </th>
+                      <th className="px-3 py-2 text-center">Notificações</th>
+
+                      {/* NOVO */}
+                      <th className="px-3 py-2 text-right">Ações</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {adegas.map((a) => (
                       <tr
@@ -277,18 +279,11 @@ export default function AdegasPage() {
                         <td className="px-3 py-2 text-sm font-medium text-zinc-100">
                           {a.nome}
                         </td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">
-                          {a.cnpj}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">
-                          {a.telefone}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">
-                          {a.whatsapp_numero}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">
-                          {a.email}
-                        </td>
+                        <td className="px-3 py-2 text-xs text-zinc-300">{a.cnpj}</td>
+                        <td className="px-3 py-2 text-xs text-zinc-300">{a.telefone}</td>
+                        <td className="px-3 py-2 text-xs text-zinc-300">{a.whatsapp_numero}</td>
+                        <td className="px-3 py-2 text-xs text-zinc-300">{a.email}</td>
+
                         <td className="px-3 py-2 text-center text-xs">
                           {a.notificacao_ativa ? (
                             <span className="rounded-full bg-emerald-500/20 px-2 py-1 text-[11px] font-medium text-emerald-300">
@@ -299,6 +294,17 @@ export default function AdegasPage() {
                               Desativada
                             </span>
                           )}
+                        </td>
+
+                        {/* NOVO */}
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => router.push(`/adegas/${a.id}/editar`)}
+                            className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-100 hover:bg-zinc-800"
+                          >
+                            Editar
+                          </button>
                         </td>
                       </tr>
                     ))}

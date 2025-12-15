@@ -14,7 +14,7 @@ export type ItemPedidoRead = {
   produto_id: number;
   quantidade: number;
   preco_unitario: string;
-  subtotal: string;
+  total_liquido: string;
 };
 
 export type PedidoCreate = {
