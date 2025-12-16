@@ -101,9 +101,9 @@ export default function ClientesPage() {
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="btn-secondary"
+            className="btn-primary"
           >
-            ← Home
+            Home
           </button>
 
           {/* {isAdminOrManager && ( */}

@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
+const API_BASE = process.env.NEXT_PUBLIC_API_URL; 
 
 type AdegaUser = {
   id: number;
@@ -31,6 +30,9 @@ type Debito = {
   status: "aberto" | "pago" | "cancelado";
   vencimento?: string | null;
   criado_em: string;
+
+  // ✅ NOVO: flag de WhatsApp enviado (se vier do backend)
+  whatsapp_enviado?: boolean | null;
 };
 
 function getToken(): string | null {
@@ -43,7 +45,6 @@ function getAdegaUser(): AdegaUser | null {
   const raw = localStorage.getItem("adega_user");
   if (!raw) return null;
 
-  // Trata casos: JSON normal OU string com aspas extras
   try {
     return JSON.parse(raw) as AdegaUser;
   } catch {
@@ -67,7 +68,8 @@ function brl(v: number) {
 }
 
 export default function DebitosPage() {
-    const router = useRouter();
+  const router = useRouter();
+
   const [adegaId, setAdegaId] = useState<number | null>(null);
   const [adegaNome, setAdegaNome] = useState<string>("");
 
@@ -106,7 +108,8 @@ export default function DebitosPage() {
     }
   }, []);
 
-  async function carregarTudo(aid: number) {
+  async function carregarTudo(aid: number, opts?: { marcarWhatsappEnviadoId?: number }) {
+    
     setLoading(true);
     setMsg("");
 
@@ -137,8 +140,41 @@ export default function DebitosPage() {
         throw new Error(`Falha ao carregar débitos: ${t}`);
       }
 
-      const debitosData = (await rDebitos.json()) as Debito[];
-      setDebitos(debitosData);
+      // const debitosData = (await rDebitos.json()) as Debito[];
+      const debitosRaw = (await rDebitos.json()) as any[];
+
+      console.log("Débitos RAW do backend:", debitosRaw);
+      console.log(
+        "whatsapp_enviado values:",
+        Array.isArray(debitosRaw) ? debitosRaw.map((d: any) => d.whatsapp_enviado) : debitosRaw
+      );
+
+
+      const debitosData: Debito[] = debitosRaw.map((d) => ({
+        ...d,
+        // garante boolean consistente vindo do backend (true/false, 1/0, "true"/"false")
+        whatsapp_enviado:
+          d.whatsapp_enviado === true ||
+          d.whatsapp_enviado === 1 ||
+          d.whatsapp_enviado === "true"
+            ? true
+            : d.whatsapp_enviado === false ||
+              d.whatsapp_enviado === 0 ||
+              d.whatsapp_enviado === "false"
+            ? false
+            : null,
+      }));
+
+      const debitosAjustados =
+        opts?.marcarWhatsappEnviadoId
+          ? debitosData.map((d) =>
+              d.id === opts.marcarWhatsappEnviadoId
+                ? { ...d, whatsapp_enviado: true }
+                : d
+            )
+          : debitosData;
+
+      setDebitos(debitosAjustados);
     } catch (e: any) {
       setMsg(e?.message ?? "Erro ao carregar dados.");
     } finally {
@@ -201,6 +237,54 @@ export default function DebitosPage() {
     }
   }
 
+  // ✅ helper: atualiza um débito no estado (sem precisar recarregar tudo)
+  function patchDebitoLocal(debitoId: number, patch: Partial<Debito>) {
+    setDebitos((prev) =>
+      prev.map((d) => (d.id === debitoId ? { ...d, ...patch } : d))
+    );
+  }
+
+  // ✅ tenta persistir um patch no backend
+  async function fecharDebitoBackend(debitoId: number) {
+  const res = await fetch(`${API_BASE}/debitos/${debitoId}/fechar`, {
+    method: "POST",
+    headers,
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+async function marcarWhatsAppBackend(debitoId: number) {
+  const res = await fetch(`${API_BASE}/debitos/${debitoId}/marcar-whatsapp`, {
+    method: "POST",
+    headers,
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+
+  async function fecharDebito(debitoId: number) {
+    setLoading(true);
+    setMsg("");
+
+    // otimista (UI responde na hora)
+    patchDebitoLocal(debitoId, { status: "pago" });
+
+    try {
+      await fecharDebitoBackend(debitoId);
+      setMsg("Débito fechado com sucesso!");
+    } catch (e: any) {
+      // rollback se falhar
+      patchDebitoLocal(debitoId, { status: "aberto" });
+      setMsg(
+        `Não consegui fechar no backend. Verifique se existe PATCH /debitos/{id}. Detalhes: ${
+          e?.message ?? "erro"
+        }`
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function enviarWhatsApp(debitoId: number) {
     setLoading(true);
     setMsg("");
@@ -220,6 +304,18 @@ export default function DebitosPage() {
         throw new Error(`Falha ao enviar WhatsApp: ${t}`);
       }
 
+      // ✅ marca local
+      patchDebitoLocal(debitoId, { whatsapp_enviado: true });
+
+      console.log("Status : " + debitoId)
+
+      // ✅ tenta persistir no backend (se existir campo/rota)
+      try {
+        await marcarWhatsAppBackend(debitoId);
+      } catch {
+        // se ainda não tem no backend, tudo bem: não quebra o fluxo
+      }
+
       setMsg("Mensagem enviada com sucesso!");
     } catch (e: any) {
       setMsg(e?.message ?? "Erro ao enviar WhatsApp.");
@@ -235,7 +331,7 @@ export default function DebitosPage() {
           <div>
             <h1 className="text-2xl font-semibold">Débitos avulsos</h1>
             <p className="text-sm text-zinc-400">
-              Cadastre débitos sem pedido e envie cobrança via WhatsApp.
+              Cadastre débitos sem pedido, feche quando pago e envie cobrança via WhatsApp.
             </p>
             {adegaId ? (
               <p className="mt-1 text-xs text-zinc-500">
@@ -262,18 +358,19 @@ export default function DebitosPage() {
 
             <button
               onClick={() => adegaId && carregarTudo(adegaId)}
-              className="rounded-lg bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-50"
+              className="btn-primary"
               disabled={loading || !adegaId}
             >
               Atualizar
             </button>
+
             <button
-                type="button"
-                onClick={() => router.push("/")}
-                className="btn-secondary"
+              type="button"
+              onClick={() => router.push("/")}
+              className="btn-primary"
             >
-                ← Home
-          </button>
+              Home
+            </button>
           </div>
         </div>
 
@@ -377,6 +474,10 @@ export default function DebitosPage() {
                 <th className="px-4 py-3">Valor</th>
                 <th className="px-4 py-3">Vencimento</th>
                 <th className="px-4 py-3">Status</th>
+
+                {/* ✅ NOVO */}
+                <th className="px-4 py-3">WhatsApp</th>
+
                 <th className="px-4 py-3">Descrição</th>
                 <th className="px-4 py-3">Ações</th>
               </tr>
@@ -389,24 +490,56 @@ export default function DebitosPage() {
                   <td className="px-4 py-3">{brl(d.valor)}</td>
                   <td className="px-4 py-3">{d.vencimento ?? "—"}</td>
                   <td className="px-4 py-3">{d.status}</td>
+
+                  {/* ✅ NOVO */}
+                  <td className="px-4 py-3">
+                    
+                    {d.whatsapp_enviado ? (
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-200">
+                        Enviado
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-zinc-700/30 px-2 py-1 text-[11px] font-semibold text-zinc-300">
+                        Não enviado
+                      </span>
+                    )}
+                  </td>
+
                   <td className="px-4 py-3">
                     <span className="text-zinc-300">
                       {d.descricao ? d.descricao : "—"}
                     </span>
                   </td>
+
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => enviarWhatsApp(d.id)}
-                      className="rounded-lg bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-950 hover:bg-white disabled:opacity-50"
-                      disabled={loading || d.status !== "aberto"}
-                      title={
-                        d.status !== "aberto"
-                          ? "Somente débitos em aberto"
-                          : "Enviar WhatsApp"
-                      }
-                    >
-                      Enviar WhatsApp
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => enviarWhatsApp(d.id)}
+                        className="rounded-lg bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-950 hover:bg-white disabled:opacity-50"
+                        disabled={loading || d.status !== "aberto"}
+                        title={
+                          d.status !== "aberto"
+                            ? "Somente débitos em aberto"
+                            : "Enviar WhatsApp"
+                        }
+                      >
+                        Enviar WhatsApp
+                      </button>
+
+                      {/* ✅ NOVO: Fechar débito */}
+                      <button
+                        onClick={() => fecharDebito(d.id)}
+                        className="rounded-lg bg-amber-300 px-3 py-2 text-xs font-semibold text-black hover:bg-amber-200 disabled:opacity-50"
+                        disabled={loading || d.status !== "aberto"}
+                        title={
+                          d.status !== "aberto"
+                            ? "Somente débitos em aberto"
+                            : "Marcar como pago"
+                        }
+                      >
+                        Fechar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -415,7 +548,7 @@ export default function DebitosPage() {
                 <tr>
                   <td
                     className="px-4 py-10 text-center text-sm text-zinc-500"
-                    colSpan={6}
+                    colSpan={7}
                   >
                     Nenhum débito encontrado.
                   </td>

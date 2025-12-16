@@ -149,9 +149,9 @@ export default function EstoquePage() {
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="btn-secondary"
+            className="btn-primary"
           >
-            ← Voltar
+            Voltar
           </button>
 
           {isAdminOrManager && (

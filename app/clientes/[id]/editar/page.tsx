@@ -8,12 +8,12 @@ import { useAuth } from "@/context/AuthContext";
 
 type Cliente = {
   id: number;
+  adega_id: number;
   nome: string;
   email?: string | null;
   telefone?: string | null;
-  endereco?: string | null;
   observacoes?: string | null;
-  eh_whatsapp?: boolean | null; // se existir no seu backend
+  eh_whatsapp?: boolean | null;
 };
 
 type UsuarioAtual = {
@@ -21,6 +21,34 @@ type UsuarioAtual = {
   perfil: string;
   perfil_id: number;
 };
+
+function getAdegaIdFromLocalStorage(): number | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem("adega_user");
+  if (!raw) return null;
+
+  try {
+    const u = JSON.parse(raw);
+    const id = Number(u?.adega_id);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  } catch {
+    // em alguns casos vem com aspas extras
+    try {
+      const t = raw.trim();
+      if (
+        (t.startsWith("'") && t.endsWith("'")) ||
+        (t.startsWith('"') && t.endsWith('"'))
+      ) {
+        const u2 = JSON.parse(t.slice(1, -1));
+        const id2 = Number(u2?.adega_id);
+        return Number.isFinite(id2) && id2 > 0 ? id2 : null;
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+}
 
 export default function EditarClientePage() {
   const router = useRouter();
@@ -38,14 +66,16 @@ export default function EditarClientePage() {
 
   const isAdminOrManager =
     usuario &&
-    (usuario.perfil_id === 1 || usuario.perfil_id === 2 || usuario.perfil_id === 7);
+    (usuario.perfil_id === 1 ||
+      usuario.perfil_id === 2 ||
+      usuario.perfil_id === 7);
 
   const [form, setForm] = useState<Cliente>({
     id: clienteId,
+    adega_id: 0,
     nome: "",
     email: "",
     telefone: "",
-    endereco: "",
     observacoes: "",
     eh_whatsapp: true,
   });
@@ -72,7 +102,6 @@ export default function EditarClientePage() {
         setLoading(true);
         setErro(null);
 
-        // ✅ Ajuste a rota se seu backend for diferente
         const resp = await fetch(`${API_BASE}/clientes/${clienteId}`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
@@ -93,13 +122,13 @@ export default function EditarClientePage() {
 
         const data = (await resp.json()) as Cliente;
 
-        // normaliza strings para não cair em value=null
+        // ✅ Normaliza: nunca deixe adega_id virar string vazia
         setForm({
           ...data,
+          adega_id: Number(data.adega_id) || 0,
           nome: data.nome ?? "",
           email: data.email ?? "",
           telefone: data.telefone ?? "",
-          endereco: data.endereco ?? "",
           observacoes: data.observacoes ?? "",
           eh_whatsapp: data.eh_whatsapp ?? true,
         });
@@ -125,12 +154,23 @@ export default function EditarClientePage() {
       return;
     }
 
+    // ✅ garante adega_id obrigatório
+    const adegaId =
+      (Number(form.adega_id) > 0 ? Number(form.adega_id) : null) ??
+      getAdegaIdFromLocalStorage();
+
+    if (!adegaId) {
+      setErro(
+        "Não foi possível identificar a adega (adega_id). Faça login novamente."
+      );
+      return;
+    }
+
     setSalvando(true);
     setErro(null);
     setOkMsg(null);
 
     try {
-      // ✅ Ajuste método/rota se seu backend usar PATCH
       const resp = await fetch(`${API_BASE}/clientes/${clienteId}`, {
         method: "PUT",
         headers: {
@@ -138,10 +178,10 @@ export default function EditarClientePage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          adega_id: adegaId, // ✅ ESSENCIAL (backend exige)
           nome: form.nome.trim(),
           email: (form.email ?? "").trim() || null,
           telefone: (form.telefone ?? "").trim() || null,
-          endereco: (form.endereco ?? "").trim() || null,
           observacoes: (form.observacoes ?? "").trim() || null,
           eh_whatsapp: form.eh_whatsapp ?? true,
         }),
@@ -197,9 +237,9 @@ export default function EditarClientePage() {
           <button
             type="button"
             onClick={() => router.push("/clientes")}
-            className="btn-secondary"
+            className="btn-primary"
           >
-            ← Voltar
+            Voltar
           </button>
 
           <button
@@ -229,45 +269,44 @@ export default function EditarClientePage() {
           <div className="md:col-span-2">
             <label className="text-xs text-zinc-400">Nome *</label>
             <input
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-300"
               value={form.nome ?? ""}
-              onChange={(e) => setForm((p) => ({ ...p, nome: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, nome: e.target.value }))
+              }
             />
           </div>
 
           <div>
             <label className="text-xs text-zinc-400">E-mail</label>
             <input
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-100"
               value={form.email ?? ""}
-              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, email: e.target.value }))
+              }
             />
           </div>
 
           <div>
             <label className="text-xs text-zinc-400">Telefone</label>
             <input
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-300"
               value={form.telefone ?? ""}
-              onChange={(e) => setForm((p) => ({ ...p, telefone: e.target.value }))}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="text-xs text-zinc-400">Endereço</label>
-            <input
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
-              value={form.endereco ?? ""}
-              onChange={(e) => setForm((p) => ({ ...p, endereco: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, telefone: e.target.value }))
+              }
             />
           </div>
 
           <div className="md:col-span-2">
             <label className="text-xs text-zinc-400">Observações</label>
             <textarea
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-300"
               value={form.observacoes ?? ""}
-              onChange={(e) => setForm((p) => ({ ...p, observacoes: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, observacoes: e.target.value }))
+              }
               rows={4}
             />
           </div>
@@ -277,7 +316,9 @@ export default function EditarClientePage() {
               id="eh_whatsapp"
               type="checkbox"
               checked={!!form.eh_whatsapp}
-              onChange={(e) => setForm((p) => ({ ...p, eh_whatsapp: e.target.checked }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, eh_whatsapp: e.target.checked }))
+              }
             />
             <label htmlFor="eh_whatsapp" className="text-sm text-zinc-300">
               É WhatsApp?
