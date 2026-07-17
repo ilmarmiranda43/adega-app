@@ -21,8 +21,7 @@ export type LoginResponse = {
 };
 
 // Base da API: usa variável de ambiente em produção e localhost em dev
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+const API_BASE =  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 // ATENÇÃO:
 // Certifique-se de que o backend espera exatamente estes campos no JSON.
@@ -32,7 +31,7 @@ export async function login(
   senha: string
 ): Promise<LoginResponse> {
   console.log("API_BASE login:", API_BASE);
-  
+
   const resp = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: {
