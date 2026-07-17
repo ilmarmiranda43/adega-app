@@ -1,5 +1,7 @@
 // lib/auth.ts
 
+// Colocado um comentário para testar a subida no GitHub
+
 export type Usuario = {
   id: number;
   nome: string;
