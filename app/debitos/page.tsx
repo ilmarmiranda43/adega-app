@@ -92,6 +92,7 @@ export default function DebitosPage() {
   // conexão do WhatsApp/Baileys
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [whatsappStatus, setWhatsappStatus] = useState<string>("");
+  const [whatsappConectado,setWhatsappConectado] = useState(false);
   const [conectandoWhatsapp, setConectandoWhatsapp] = useState(false);
   const intervaloQrRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutQrRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -163,7 +164,7 @@ export default function DebitosPage() {
     if (resultado.conectado) {
       pararConsultaQr();
       setQrCode(null);
-      setConectandoWhatsapp(false);
+      setConectandoWhatsapp(true);
       setWhatsappStatus("WhatsApp conectado com sucesso!");
       return true;
     }
@@ -179,6 +180,7 @@ export default function DebitosPage() {
   }
 
   async function conectarWhatsApp() {
+    setWhatsappConectado(false);
     if (!adegaId) {
       setWhatsappStatus("Não foi possível identificar a adega do usuário.");
       return;
@@ -233,6 +235,83 @@ export default function DebitosPage() {
       );
     }
   }
+
+  async function verificarStatusWhatsapp(
+  aid: number
+) {
+  try {
+    const response = await fetch(
+      `${API_BASE}/debitos/whatsapp/${aid}/status`,
+      {
+        headers,
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        await lerRespostaErro(
+          response,
+          "Não foi possível consultar o WhatsApp."
+        )
+      );
+    }
+
+    const resultado = await response.json();
+
+    if (resultado.conectado) {
+      setWhatsappConectado(true);
+      setWhatsappStatus(
+        resultado.sessao?.telefone
+          ? `WhatsApp conectado: +${resultado.sessao.telefone}`
+          : "WhatsApp conectado"
+      );
+    } else {
+      setWhatsappConectado(false);
+
+      const status =
+        resultado.status ||
+        resultado.sessao?.status ||
+        "desconectado";
+
+      if (status === "conectando") {
+        setWhatsappStatus(
+          "WhatsApp conectando..."
+        );
+      } else if (status === "aguardando_qr") {
+        setWhatsappStatus(
+          "Aguardando leitura do QR Code"
+        );
+      } else {
+        setWhatsappStatus(
+          "WhatsApp desconectado"
+        );
+      }
+    }
+  } catch (erro) {
+    setWhatsappConectado(false);
+
+    setWhatsappStatus(
+      erro instanceof Error
+        ? erro.message
+        : "Não foi possível consultar o WhatsApp."
+    );
+  }
+}
+
+useEffect(() => {
+  if (!adegaId) return;
+
+  verificarStatusWhatsapp(adegaId);
+
+  const intervalo = setInterval(() => {
+    verificarStatusWhatsapp(adegaId);
+  }, 10000);
+
+  return () => clearInterval(intervalo);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [adegaId]);
+
 
   async function carregarTudo(aid: number, opts?: { marcarWhatsappEnviadoId?: number }) {
     
@@ -531,15 +610,36 @@ async function marcarWhatsAppBackend(debitoId: number) {
               <p className="mt-1 text-xs text-zinc-400">
                 Conecte o WhatsApp da adega antes de enviar cobranças.
               </p>
+              <div className="mt-2 flex items-center gap-2">
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    whatsappConectado
+                      ? "bg-emerald-400"
+                      : "bg-red-400"
+                  }`}
+                />
+
+                <span
+                  className={`text-xs ${
+                    whatsappConectado
+                      ? "text-emerald-300"
+                      : "text-zinc-400"
+                  }`}
+                >
+                  {whatsappStatus ||
+                    "Consultando status..."}
+                </span>
+              </div>
             </div>
 
             <button
               type="button"
               onClick={conectarWhatsApp}
-              disabled={!adegaId || conectandoWhatsapp}
+              disabled={!adegaId ||conectandoWhatsapp ||whatsappConectado}
               className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {conectandoWhatsapp ? "Conectando..." : "Conectar WhatsApp"}
+              {/* {conectandoWhatsapp ? "Conectando..." : "Conectar WhatsApp"} */}
+              {whatsappConectado? "WhatsApp conectado": conectandoWhatsapp? "Conectando...": "Conectar WhatsApp"}
             </button>
           </div>
 
