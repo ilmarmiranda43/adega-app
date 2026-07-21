@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL; 
@@ -89,6 +89,13 @@ export default function DebitosPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string>("");
 
+  // conexão do WhatsApp/Baileys
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [whatsappStatus, setWhatsappStatus] = useState<string>("");
+  const [conectandoWhatsapp, setConectandoWhatsapp] = useState(false);
+  const intervaloQrRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutQrRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const headers = useMemo(() => {
     const token = getToken();
     return {
@@ -107,6 +114,125 @@ export default function DebitosPage() {
       setAdegaNome("");
     }
   }, []);
+
+  function pararConsultaQr() {
+    if (intervaloQrRef.current) {
+      clearInterval(intervaloQrRef.current);
+      intervaloQrRef.current = null;
+    }
+
+    if (timeoutQrRef.current) {
+      clearTimeout(timeoutQrRef.current);
+      timeoutQrRef.current = null;
+    }
+  }
+
+  useEffect(() => {
+    return () => pararConsultaQr();
+  }, []);
+
+  async function lerRespostaErro(response: Response, fallback: string) {
+    const texto = await response.text();
+    if (!texto) return fallback;
+
+    try {
+      const data = JSON.parse(texto);
+      return data?.detail || data?.erro || fallback;
+    } catch {
+      return texto;
+    }
+  }
+
+  async function consultarQrWhatsapp(aid: number) {
+    const response = await fetch(
+      `${API_BASE}/debitos/whatsapp/${aid}/qr`,
+      {
+        headers,
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        await lerRespostaErro(response, "Não foi possível consultar o QR Code.")
+      );
+    }
+
+    const resultado = await response.json();
+
+    if (resultado.conectado) {
+      pararConsultaQr();
+      setQrCode(null);
+      setConectandoWhatsapp(false);
+      setWhatsappStatus("WhatsApp conectado com sucesso!");
+      return true;
+    }
+
+    if (resultado.qr_code) {
+      setQrCode(resultado.qr_code);
+      setWhatsappStatus("Leia o QR Code com o aplicativo WhatsApp.");
+    } else {
+      setWhatsappStatus("Gerando QR Code...");
+    }
+
+    return false;
+  }
+
+  async function conectarWhatsApp() {
+    if (!adegaId) {
+      setWhatsappStatus("Não foi possível identificar a adega do usuário.");
+      return;
+    }
+
+    pararConsultaQr();
+    setQrCode(null);
+    setConectandoWhatsapp(true);
+    setWhatsappStatus("Iniciando conexão com o WhatsApp...");
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/debitos/whatsapp/${adegaId}/conectar`,
+        {
+          method: "POST",
+          headers,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          await lerRespostaErro(response, "Não foi possível iniciar a conexão.")
+        );
+      }
+
+      const conectado = await consultarQrWhatsapp(adegaId);
+      if (conectado) return;
+
+      intervaloQrRef.current = setInterval(() => {
+        consultarQrWhatsapp(adegaId).catch((erro) => {
+          pararConsultaQr();
+          setConectandoWhatsapp(false);
+          setWhatsappStatus(
+            erro instanceof Error ? erro.message : "Erro ao consultar o QR Code."
+          );
+        });
+      }, 2000);
+
+      timeoutQrRef.current = setTimeout(() => {
+        pararConsultaQr();
+        setConectandoWhatsapp(false);
+        setWhatsappStatus(
+          "O QR Code expirou. Clique em Conectar WhatsApp para tentar novamente."
+        );
+        setQrCode(null);
+      }, 120000);
+    } catch (erro) {
+      pararConsultaQr();
+      setConectandoWhatsapp(false);
+      setWhatsappStatus(
+        erro instanceof Error ? erro.message : "Erro ao conectar o WhatsApp."
+      );
+    }
+  }
 
   async function carregarTudo(aid: number, opts?: { marcarWhatsappEnviadoId?: number }) {
     
@@ -394,6 +520,52 @@ async function marcarWhatsAppBackend(debitoId: number) {
             {msg}
           </div>
         ) : null}
+
+        {/* Conexão WhatsApp/Baileys */}
+        <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-200">
+                Conexão do WhatsApp
+              </h2>
+              <p className="mt-1 text-xs text-zinc-400">
+                Conecte o WhatsApp da adega antes de enviar cobranças.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={conectarWhatsApp}
+              disabled={!adegaId || conectandoWhatsapp}
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {conectandoWhatsapp ? "Conectando..." : "Conectar WhatsApp"}
+            </button>
+          </div>
+
+          {whatsappStatus ? (
+            <div className="mt-3 rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-300">
+              {whatsappStatus}
+            </div>
+          ) : null}
+
+          {qrCode ? (
+            <div className="mt-4 flex flex-col items-center rounded-xl bg-white p-4 text-center text-zinc-950">
+              <p className="mb-3 max-w-md text-sm">
+                No celular, abra o WhatsApp, acesse <b>Dispositivos conectados</b>,
+                selecione <b>Conectar dispositivo</b> e leia o código abaixo.
+              </p>
+
+              <img
+                src={qrCode}
+                alt="QR Code para conectar o WhatsApp"
+                width={350}
+                height={350}
+                className="h-auto w-full max-w-[350px]"
+              />
+            </div>
+          ) : null}
+        </div>
 
         {/* Form */}
         <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
