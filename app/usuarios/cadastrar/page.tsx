@@ -29,7 +29,7 @@ export default function CadastroUsuarioPage() {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [perfilId, setPerfilId] = useState<string>("");
-  
+
   const [carregandoPerfis, setCarregandoPerfis] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -56,8 +56,8 @@ export default function CadastroUsuarioPage() {
 
     const perfilNormalizado = (perfilNome || "").toLowerCase();
 
-    if (perfilNormalizado === "administrador" || perfilNormalizado === "admin" 
-        || perfilNormalizado === "gerente" || perfilNormalizado === "master") {
+    if (perfilNormalizado === "administrador" || perfilNormalizado === "admin"
+      || perfilNormalizado === "gerente" || perfilNormalizado === "master") {
       setAutorizado(true);
     } else {
       setAutorizado(false);
@@ -67,8 +67,9 @@ export default function CadastroUsuarioPage() {
   }, [router]);
 
   // 2) Carrega perfis só se estiver autorizado
+
   useEffect(() => {
-    if (!autorizado) return;
+    if (!autorizado || adegaId == null) return;
 
     async function carregarPerfis() {
       try {
@@ -76,33 +77,50 @@ export default function CadastroUsuarioPage() {
         setErro(null);
 
         const token = obterToken();
+
         const headers: HeadersInit = {};
+
         if (token) {
           headers["Authorization"] = `Bearer ${token}`;
         }
 
-        const resp = await fetch(`${API_BASE}/perfis`, { headers });
+        const resp = await fetch(
+          `${API_BASE}/perfis/?adega_id=${encodeURIComponent(String(adegaId))}`,
+          { headers }
+        );
 
         if (!resp.ok) {
           const txt = await resp.text();
-          console.error("Erro ao carregar perfis:", resp.status, txt);
+
+          console.error(
+            "Erro ao carregar perfis:",
+            resp.status,
+            txt
+          );
+
           throw new Error("Não foi possível carregar os perfis.");
         }
 
         const dados: Perfil[] = await resp.json();
+
         setPerfis(dados.filter((p) => p.ativo));
+
       } catch (err: any) {
         console.error(err);
+
         setErro(
-          err?.message || "Erro ao carregar perfis. Tente novamente."
+          err?.message || "Erro ao carregar perfis."
         );
+
       } finally {
         setCarregandoPerfis(false);
       }
     }
 
     carregarPerfis();
-  }, [autorizado]);
+
+  }, [autorizado, adegaId]);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
