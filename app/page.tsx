@@ -198,7 +198,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
                 Organize sua{" "}
                 <span className="text-amber-300">ADEGA</span>
-                <span>Saiba como está o movimento de sua adega</span>
+                <span className="block">Saiba como está o movimento de sua adega</span>
               </h2>
 
               <p className="max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
