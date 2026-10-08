@@ -202,9 +202,9 @@ export default function Home() {
               </h2>
 
               <p className="max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
-                Cadastre rótulos, acompanhe o estoque, veja o que está saindo
-                mais e tenha o catálogo sempre à mão — no celular, tablet ou
-                computador. Perfeito para adegas, bares e pequenos comércios.
+                Cadastre seus produtos, acompanhe as vendas e seu estoque.
+                NÃO SEJA PEGO DE SURPRESA!
+                Perfeito para adegas, bares e pequenos comércios.
               </p>
             </div>
 
