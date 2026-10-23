@@ -1,165 +1,72 @@
 "use client";
 
-import Image from "next/image";
-
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { listarProdutos, Produto } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
+import { listarProdutos, type Produto } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import AdegaPageShell from "@/components/AdegaPageShell";
 
+const money = (value: number | string) => new Intl.NumberFormat("pt-BR", {
+  style: "currency", currency: "BRL",
+}).format(Number(value) || 0);
 
 export default function ProdutosPage() {
+  const { perfilNome } = useAuth();
+  const isManager = ["admin", "administrador", "gerente", "master"].includes((perfilNome ?? "").toLowerCase());
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [busca, setBusca] = useState("");
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const { userName, perfilNome, adegaNome, user } = useAuth();
 
-  useEffect(() => {
-    listarProdutos()
-      .then((data) => {
-        setProdutos(data);
-      })
-      .catch((e) => {
-        console.error(e);
-        setErro("Erro ao carregar produtos.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+  async function carregar() {
+    setLoading(true);
+    setErro(null);
+    try {
+      const resultado = await listarProdutos();
+      setProdutos(Array.isArray(resultado) ? resultado : []);
+    } catch (error) {
+      console.error(error);
+      setErro("Não foi possível carregar o catálogo. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  }, []);
+  useEffect(() => { void carregar(); }, []);
+
+  const ativos = useMemo(() => produtos.filter(p => p.ativo !== false), [produtos]);
+  const filtrados = useMemo(() => ativos.filter(p => p.nome.toLocaleLowerCase("pt-BR").includes(busca.toLocaleLowerCase("pt-BR").trim())), [ativos, busca]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
-      <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-6 md:px-8">
-        {/* HEADER */}
-        <header className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🍷</span>
-            <div>
-              {/* <h1 className="text-xl font-semibold tracking-wide">
-                {adegaNome || "Minha Adega"} - Catálogo de Produtos
-              </h1> */}
-              <header className="mb-4">
-                <h1 className="text-xl font-semibold">
-                  {adegaNome || "Minha Adega"} - Catálogo de Produtos
-                </h1>
-                <p className="text-sm text-zinc-500">
-                  Olá, {userName} ({perfilNome})
-                </p>
-              </header>
-            </div>
-          </div>
-
-          {/* Navegação simples */}
-          <nav className="flex items-center gap-2 text-xs sm:text-sm">
-            <Link
-              href="/"
-              className="rounded-full border border-amber-500/40 bg-amber-900/20 px-4 py-1.5 font-medium text-amber-100 transition hover:bg-amber-800/50 hover:text-amber-50"
-            >
-              ← Home
-            </Link>
-          </nav>
-        </header>
-
-        {/* CONTEÚDO */}
-        <main className="flex-1">
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-bold sm:text-3xl">
-                Catálogo de produtos
-              </h2>
-              <p className="text-sm text-zinc-300">
-                Visualize os rótulos disponíveis na adega. Em breve: filtros,
-                estoque e categorias avançadas.
-              </p>
-            </div>
-
-            {/* Badge / resumo simples */}
-            <div className="flex items-center gap-2 text-xs text-zinc-300">
-              <span className="rounded-full border border-zinc-700 bg-zinc-900/70 px-3 py-1">
-                Total de rótulos:{" "}
-                <span className="font-semibold text-amber-200">
-                  {loading ? "—" : produtos.filter((p) => p.ativo).length}
-                </span>
-              </span>
-            </div>
-          </div>
-
-          {/* ESTADOS DE CARREGAMENTO / ERRO */}
-          {loading && (
-            <p className="text-sm text-zinc-300">Carregando produtos...</p>
-          )}
-
-          {erro && (
-            <p className="text-sm text-red-400">
-              {erro} Tente novamente em instantes.
-            </p>
-          )}
-
-          {/* LISTA DE PRODUTOS */}
-          {!loading && !erro && (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              
-              {produtos
-                .filter((p) => p.ativo !== false)
-                .map((p) => (
-                <article
-                  key={p.id}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-amber-900/40 bg-zinc-900/70 shadow-lg shadow-black/40"
-                >
-                  {/* Imagem / capa */}
-                  {/* {p.foto_url && (
-                    <div className="relative h-40 w-full overflow-hidden">
-                        <Image
-                        src={p.foto_url}
-                        alt={p.nome}
-                        fill
-                        className="object-cover transition duration-300 hover:scale-105"
-                        />
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                    </div>
-                    )} */}
-
-
-                  {/* Conteúdo do card */}
-                  <div className="flex flex-1 flex-col gap-2 p-3">
-                    <h3 className="text-sm font-semibold sm:text-base">
-                      {p.nome}
-                    </h3>
-
-                    {/* <p className="text-xs text-zinc-400">
-                      Tipo:{" "}
-                      <span className="font-medium text-amber-200">
-                        {p.tipo_bebida}
-                      </span>
-                    </p> */}
-
-                    {/* Em breve: aqui dá para colocar teor alcoólico, volume, etc. */}
-
-                    <div className="mt-auto flex items-center justify-between pt-2">
-                      <span className="text-sm font-bold text-emerald-300">
-                        R$ {p.preco}
-                      </span>
-
-                      <span className="rounded-full border border-zinc-700 px-2 py-1 text-[10px] uppercase tracking-wide text-zinc-300">
-                        Disponível
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-
-          {/* Rodapé interno da página */}
-          <div className="mt-6 border-t border-zinc-800 pt-3 text-xs text-zinc-500">
-            Em breve: filtros por tipo de bebida, faixa de preço e controle de
-            estoque diretamente nesta tela.
-          </div>
-        </main>
+    <AdegaPageShell title="Catálogo de produtos" subtitle="Produtos"
+      headerAction={isManager ? <Link href="/produtos/gerenciar" className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700">Gerenciar produtos</Link> : undefined}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h2 className="text-xl font-semibold text-slate-900">Seus produtos</h2><p className="mt-1 text-sm text-slate-500">Consulte os itens disponíveis no catálogo.</p></div>
+        <span className="rounded-full bg-orange-50 px-3 py-1.5 text-sm font-semibold text-orange-800">{loading ? "—" : ativos.length} produtos ativos</span>
       </div>
-    </div>
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <label htmlFor="buscar-produto" className="mb-2 block text-sm font-medium text-slate-700">Pesquisar produto</label>
+        <input id="buscar-produto" type="search" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Digite o nome do produto..."
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100" />
+      </section>
+      {erro && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{erro} <button type="button" onClick={() => void carregar()} className="ml-2 font-semibold underline">Tentar novamente</button></div>}
+      {loading ? <div role="status" className="rounded-2xl border border-slate-200 bg-white p-8 text-sm text-slate-500">Carregando produtos...</div>
+        : !erro && filtrados.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+            <div className="text-3xl">📦</div>
+            <h3 className="mt-3 font-semibold text-slate-800">{busca ? "Nenhum produto encontrado" : "Seu catálogo está vazio"}</h3>
+            <p className="mt-1 text-sm text-slate-500">{busca ? "Experimente outro termo." : "Cadastre seu primeiro produto para começar."}</p>
+            {isManager && !busca && <Link href="/produtos/gerenciar" className="mt-4 inline-block rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white">Cadastrar produto</Link>}
+          </div>
+        ) : !erro && (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {filtrados.map(produto => <article key={produto.id} className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div><span className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-xl" aria-hidden="true">🍷</span>
+                <h3 className="text-base font-semibold text-slate-900">{produto.nome}</h3></div>
+              <div className="mt-6 flex items-center justify-between gap-2 border-t border-slate-100 pt-4"><span className="text-lg font-bold text-slate-900">{money(produto.preco)}</span><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">Ativo</span></div>
+            </article>)}
+          </div>
+        )}
+    </AdegaPageShell>
   );
 }

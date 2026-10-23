@@ -1,295 +1,104 @@
 "use client";
-import { useAuth } from "@/context/AuthContext";
+
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import {
-  listarCategorias,
-  criarCategoria,
-  atualizarCategoria,
-  excluirCategoria,
-  Categoria,
-} from "@/lib/api";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { listarCategorias, criarCategoria, atualizarCategoria, excluirCategoria, type Categoria } from "@/lib/api";
+import AdegaPageShell from "@/components/AdegaPageShell";
 
-type FormState = {
-  idEditando: number | null;
-  nome: string;
-  descricao: string;
-};
-
-const formStateDefault: FormState = {
-  idEditando: null,
-  nome: "",
-  descricao: "",
-};
+type FormState = { idEditando: number | null; nome: string; descricao: string };
+const vazio: FormState = { idEditando: null, nome: "", descricao: "" };
 
 export default function CategoriasPage() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [form, setForm] = useState<FormState>(vazio);
+  const [busca, setBusca] = useState("");
   const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
-  const [form, setForm] = useState<FormState>(formStateDefault);
-  const { userName, perfilNome, adegaNome, user } = useAuth();
+  const [excluindo, setExcluindo] = useState<number | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [sucesso, setSucesso] = useState<string | null>(null);
 
-  async function carregarCategorias() {
+  async function carregar() {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await listarCategorias();
-      setCategorias(data);
+      const dados = await listarCategorias();
+      setCategorias(Array.isArray(dados) ? dados : []);
       setErro(null);
-    } catch (e) {
-      console.error(e);
-      setErro("Erro ao carregar categorias.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) {
+      console.error(error);
+      setErro("Não foi possível carregar as categorias.");
+    } finally { setLoading(false); }
+  }
+  useEffect(() => { void carregar(); }, []);
+
+  function editar(c: Categoria) {
+    setForm({ idEditando: c.id, nome: c.nome, descricao: c.descricao ?? "" });
+    setSucesso(null);
+    document.getElementById("formulario-categoria")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  useEffect(() => {
-    carregarCategorias();
-  }, []);
-
-  function handleChange(
-    campo: keyof FormState,
-    valor: string | number | null
-  ) {
-    setForm((prev) => ({
-      ...prev,
-      [campo]: (valor ?? "") as string,
-    }));
-  }
-
-  function iniciarEdicao(c: Categoria) {
-    setForm({
-      idEditando: c.id,
-      nome: c.nome,
-      descricao: c.descricao ?? "",
-    });
-  }
-
-  function limparFormulario() {
-    setForm(formStateDefault);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSalvando(true);
-    setErro(null);
-
+  async function salvar(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!form.nome.trim()) { setErro("Informe o nome da categoria."); return; }
+    setSalvando(true); setErro(null); setSucesso(null);
     try {
-      const payload = {
-        nome: form.nome,
-        descricao: form.descricao || undefined,
-      };
-
-      if (form.idEditando === null) {
-        await criarCategoria(payload);
-      } else {
-        await atualizarCategoria(form.idEditando, payload);
-      }
-
-      await carregarCategorias();
-      limparFormulario();
-    } catch (e) {
-      console.error(e);
-      setErro("Erro ao salvar categoria.");
-    } finally {
-      setSalvando(false);
-    }
+      const payload = { nome: form.nome.trim(), descricao: form.descricao.trim() || undefined };
+      if (form.idEditando === null) await criarCategoria(payload);
+      else await atualizarCategoria(form.idEditando, payload);
+      setSucesso(form.idEditando === null ? "Categoria cadastrada." : "Categoria atualizada.");
+      setForm(vazio);
+      await carregar();
+    } catch (error) {
+      console.error(error);
+      setErro("Não foi possível salvar a categoria. Verifique os dados e tente novamente.");
+    } finally { setSalvando(false); }
   }
 
-  async function handleExcluir(id: number) {
-    if (!confirm("Tem certeza que deseja excluir esta categoria?")) return;
+  async function excluir(c: Categoria) {
+    if (!window.confirm(`Excluir a categoria “${c.nome}”?`)) return;
+    setExcluindo(c.id); setErro(null); setSucesso(null);
     try {
-      await excluirCategoria(id);
-      await carregarCategorias();
-    } catch (e) {
-      console.error(e);
-      setErro("Erro ao excluir categoria.");
-    }
+      await excluirCategoria(c.id);
+      setSucesso("Categoria excluída.");
+      if (form.idEditando === c.id) setForm(vazio);
+      await carregar();
+    } catch (error) {
+      console.error(error);
+      setErro("Não foi possível excluir esta categoria. Confira se ela possui produtos vinculados.");
+    } finally { setExcluindo(null); }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
-        {/* HEADER */}
-        <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🍷</span>
-            <div>
-              {/* <h1 className="text-xl font-semibold tracking-wide">
-                {adegaNome || "Minha Adega"} - Categorias
-              </h1> */}
-              <header className="mb-4">
-                <h1 className="text-xl font-semibold">
-                  {adegaNome || "Minha Adega"} - Categorias
-                </h1>
-                <p className="text-sm text-zinc-500">
-                  Olá, {userName} ({perfilNome})
-                </p>
-              </header>
-            </div>
-          </div>
+  const filtradas = useMemo(() => categorias.filter(c => c.nome.toLocaleLowerCase("pt-BR").includes(busca.toLocaleLowerCase("pt-BR").trim())), [categorias, busca]);
 
-          <nav className="flex flex-wrap gap-2 text-xs sm:text-sm">
-            <Link
-              href="/"
-              className="rounded-full border border-amber-500/40 bg-amber-900/20 px-4 py-1.5 font-medium text-amber-100 transition hover:bg-amber-800/50 hover:text-amber-50"
-            >
-              ← Home
-            </Link>
-            <Link
-              href="/produtos"
-              className="rounded-full border border-zinc-600 bg-zinc-900/40 px-4 py-1.5 font-medium text-zinc-100 transition hover:bg-zinc-800/70"
-            >
-              Ver catálogo
-            </Link>
-            <Link
-              href="/produtos/gerenciar"
-              className="rounded-full border border-zinc-600 bg-zinc-900/40 px-4 py-1.5 font-medium text-zinc-100 transition hover:bg-zinc-800/70"
-            >
-              Gerenciar produtos
-            </Link>
-          </nav>
-        </header>
-
-        <main className="flex flex-1 flex-col gap-6 lg:flex-row">
-          {/* FORMULÁRIO */}
-          <section className="lg:w-1/3">
-            <div className="rounded-2xl border border-amber-900/60 bg-zinc-900/70 p-4 shadow-lg shadow-black/40">
-              <h2 className="mb-3 text-lg font-semibold">
-                {form.idEditando ? "Editar categoria" : "Nova categoria"}
-              </h2>
-
-              {erro && (
-                <p className="mb-2 text-sm text-red-400">
-                  {erro}
-                </p>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-3 text-sm">
-                <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
-                    Nome da categoria
-                  </label>
-                  <input
-                    type="text"
-                    value={form.nome}
-                    onChange={(e) => handleChange("nome", e.target.value)}
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
-                    Descrição (opcional)
-                  </label>
-                  <textarea
-                    value={form.descricao}
-                    onChange={(e) =>
-                      handleChange("descricao", e.target.value)
-                    }
-                    rows={3}
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
-                  />
-                </div>
-
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="submit"
-                    disabled={salvando}
-                    className="flex-1 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {salvando
-                      ? "Salvando..."
-                      : form.idEditando
-                      ? "Salvar alterações"
-                      : "Cadastrar"}
-                  </button>
-                  {form.idEditando && (
-                    <button
-                      type="button"
-                      onClick={limparFormulario}
-                      className="rounded-full border border-zinc-600 px-3 py-2 text-xs font-semibold text-zinc-100 transition hover:bg-zinc-800/70"
-                    >
-                      Cancelar
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-          </section>
-
-          {/* LISTA */}
-          <section className="lg:w-2/3">
-            <div className="rounded-2xl border border-amber-900/60 bg-zinc-900/70 p-4 shadow-lg shadow-black/40">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">
-                  Categorias cadastradas
-                </h2>
-                <span className="text-xs text-zinc-400">
-                  Total:{" "}
-                  <span className="font-semibold text-amber-200">
-                    {loading ? "—" : categorias.length}
-                  </span>
-                </span>
-              </div>
-
-              {loading ? (
-                <p className="text-sm text-zinc-300">
-                  Carregando categorias...
-                </p>
-              ) : categorias.length === 0 ? (
-                <p className="text-sm text-zinc-300">
-                  Nenhuma categoria cadastrada ainda.
-                </p>
-              ) : (
-                <div className="space-y-2 text-xs sm:text-sm">
-                  {categorias.map((c) => (
-                    <div
-                      key={c.id}
-                      className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-zinc-500">
-                            #{c.id}
-                          </span>
-                          <span className="font-semibold">
-                            {c.nome}
-                          </span>
-                        </div>
-                        {c.descricao && (
-                          <p className="text-[11px] text-zinc-400">
-                            {c.descricao}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => iniciarEdicao(c)}
-                          className="rounded-full border border-zinc-600 px-3 py-1 text-[11px] font-semibold text-zinc-100 transition hover:bg-zinc-800/80"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleExcluir(c.id)}
-                          className="rounded-full border border-red-600/70 px-3 py-1 text-[11px] font-semibold text-red-200 transition hover:bg-red-900/50"
-                        >
-                          Excluir
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        </main>
-      </div>
+  return <AdegaPageShell title="Categorias" subtitle="Produtos" headerAction={<Link href="/produtos" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Ver catálogo</Link>}>
+    <div><h2 className="text-xl font-semibold text-slate-900">Organize seu catálogo</h2><p className="mt-1 text-sm text-slate-500">Crie e atualize as categorias dos produtos.</p></div>
+    {erro && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{erro}</div>}
+    {sucesso && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{sucesso}</div>}
+    <div className="grid gap-5 lg:grid-cols-5">
+      <section id="formulario-categoria" className="self-start rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+        <h3 className="text-lg font-semibold text-slate-900">{form.idEditando === null ? "Nova categoria" : "Editar categoria"}</h3>
+        <p className="mt-1 text-sm text-slate-500">Preencha os dados abaixo.</p>
+        <form onSubmit={salvar} className="mt-5 space-y-4">
+          <div><label htmlFor="categoria-nome" className="mb-1.5 block text-sm font-medium text-slate-700">Nome *</label>
+            <input id="categoria-nome" required maxLength={120} value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} placeholder="Ex.: Vinhos tintos" className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100" /></div>
+          <div><label htmlFor="categoria-descricao" className="mb-1.5 block text-sm font-medium text-slate-700">Descrição (opcional)</label>
+            <textarea id="categoria-descricao" rows={4} value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} placeholder="Descreva a categoria..." className="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100" /></div>
+          <div className="flex flex-wrap gap-2"><button type="submit" disabled={salvando} className="rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-50">{salvando ? "Salvando..." : form.idEditando === null ? "Cadastrar categoria" : "Salvar alterações"}</button>
+            {form.idEditando !== null && <button type="button" onClick={() => setForm(vazio)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</button>}</div>
+        </form>
+      </section>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-3">
+        <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-lg font-semibold text-slate-900">Categorias cadastradas</h3><span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">{loading ? "—" : categorias.length} no total</span></div>
+        <label htmlFor="buscar-categoria" className="mt-5 block text-sm font-medium text-slate-700">Pesquisar</label>
+        <input id="buscar-categoria" type="search" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar pelo nome..." className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100" />
+        <div className="mt-4 divide-y divide-slate-100">
+          {loading ? <p role="status" className="py-6 text-sm text-slate-500">Carregando categorias...</p> : filtradas.length === 0 ? <p className="py-6 text-sm text-slate-500">{busca ? "Nenhuma categoria encontrada." : "Nenhuma categoria cadastrada."}</p> : filtradas.map(c =>
+            <div key={c.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0"><p className="font-semibold text-slate-900">{c.nome}</p><p className="mt-0.5 text-sm text-slate-500">{c.descricao || "Sem descrição"}</p></div>
+              <div className="flex shrink-0 gap-2"><button type="button" onClick={() => editar(c)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Editar</button><button type="button" onClick={() => void excluir(c)} disabled={excluindo === c.id} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50">{excluindo === c.id ? "Excluindo..." : "Excluir"}</button></div>
+            </div>)}
+        </div>
+      </section>
     </div>
-  );
+  </AdegaPageShell>;
 }

@@ -3,343 +3,159 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-import {
-  listarProdutos,
-  listarCategorias,
-  type Produto,
-  type Categoria,
-} from "@/lib/api";
-
+import AppLayout, { type MenuSection } from "@/components/AppLayout";
+import { listarProdutos, listarCategorias, type Produto, type Categoria } from "@/lib/api";
 import { listarPedidos } from "@/lib/api/pedidos";
-
 import { obterUsuarioAtual, limparSessao } from "@/lib/auth";
+
+type PedidoResumo = { status?: string | null };
+const isStaging = (process.env.NEXT_PUBLIC_API_URL ?? "").includes("adega-app-api-teste");
+
+function Metric({ label, value, detail }: { label: string; value: number | string; detail: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-sm font-medium text-slate-500">{label}</p>
+      <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">{value}</p>
+      <p className="mt-1 text-xs text-slate-500">{detail}</p>
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
-
+  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [userName, setUserName] = useState("Usuário");
+  const [perfil, setPerfil] = useState("");
+  const [adegaNome, setAdegaNome] = useState("");
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [pedidos, setPedidos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [authChecked, setAuthChecked] = useState(false);
-
-  const [userName, setUserName] = useState<string>("Usuário");
-  const [perfil, setPerfil] = useState<string>("");
-  const [adegaNome, setAdegaNome] = useState<string>("");
-
-  const handleLogout = () => {
-    limparSessao();
-    router.replace("/login");
-  };
+  const [pedidos, setPedidos] = useState<PedidoResumo[]>([]);
 
   useEffect(() => {
-    async function carregarDashboard() {
+    const usuario = obterUsuarioAtual();
+    if (!usuario) {
+      router.replace("/login");
+      return;
+    }
+    const u = usuario as {
+      nome?: string; email?: string; username?: string;
+      perfil?: string | { nome?: string; descricao?: string };
+      perfil_nome?: string;
+      adega?: string | { nome?: string };
+      adega_nome?: string; adega_name?: string;
+    };
+    setUserName(u.nome ?? u.email ?? u.username ?? "Usuário");
+    const p = u.perfil ?? u.perfil_nome;
+    setPerfil(typeof p === "string" ? p : (p?.nome ?? p?.descricao ?? ""));
+    const a = u.adega ?? u.adega_nome ?? u.adega_name;
+    setAdegaNome(typeof a === "string" ? a : (a?.nome ?? ""));
+    setReady(true);
+
+    async function carregar() {
       try {
         setLoading(true);
-
-        // Após as mudanças no backend, esses endpoints já devem
-        // considerar o adega_id do usuário autenticado
-        const [prodData, catData, pedData] = await Promise.all([
-          listarProdutos(),
-          listarCategorias(),
-          listarPedidos(), // backend filtra pela adega do usuário
-        ]);
-
-        setProdutos(prodData ?? []);
-        setCategorias(catData ?? []);
-        setPedidos(pedData ?? []);
-      } catch (err) {
-        console.error("Erro ao carregar dados do dashboard:", err);
+        setError(false);
+        const [p, c, ped] = await Promise.all([listarProdutos(), listarCategorias(), listarPedidos()]);
+        setProdutos(Array.isArray(p) ? p : []);
+        setCategorias(Array.isArray(c) ? c : []);
+        setPedidos(Array.isArray(ped) ? ped : []);
+      } catch (e) {
+        console.error("Erro ao carregar o painel:", e);
+        setError(true);
       } finally {
         setLoading(false);
       }
     }
-
-    const usuarioLogado: any =
-      typeof window !== "undefined" ? obterUsuarioAtual() : null;
-
-    if (!usuarioLogado) {
-      router.replace("/login");
-      return;
-    }
-
-    // Nome do usuário
-    const nomeDoUsuario: string =
-      usuarioLogado?.nome ??
-      usuarioLogado?.email ??
-      usuarioLogado?.username ??
-      usuarioLogado?.adega_name ??
-      "Usuário";
-
-    setUserName(nomeDoUsuario);
-
-    // Nome do perfil (compatível com vários formatos possíveis)
-    const perfilBruto: any =
-      usuarioLogado?.perfil ?? usuarioLogado?.perfil_nome ?? null;
-
-    let perfilNome = "";
-
-    if (typeof perfilBruto === "string") {
-      perfilNome = perfilBruto;
-    } else if (perfilBruto && typeof perfilBruto === "object") {
-      perfilNome = perfilBruto.nome ?? perfilBruto.descricao ?? "";
-    }
-
-    setPerfil(perfilNome);
-
-    // Nome da adega (se o backend estiver enviando isso no token / sessão)
-    const adegaBruta: any =
-      usuarioLogado?.adega ?? usuarioLogado?.adega_nome ?? null;
-
-    if (typeof adegaBruta === "string") {
-      setAdegaNome(adegaBruta);
-    } else if (adegaBruta && typeof adegaBruta === "object") {
-      setAdegaNome(adegaBruta.nome ?? "");
-    }
-
-    setAuthChecked(true);
-    carregarDashboard();
+    void carregar();
   }, [router]);
 
-  // Contagem de pedidos em aberto (já filtrados por adega no backend)
-  const pedidosAbertos = pedidos.filter(
-    (p: any) => p.status?.toLowerCase() === "aberto"
-  ).length;
-
-  // Regras de acesso
-  const isAdminOrGerente =
-    perfil &&
-    ["administrador", "admin", "gerente", "master"].includes(perfil.toLowerCase());
-
-  const isAdmin =
-    perfil &&
-    ["administrador", "admin"].includes(perfil.toLowerCase());
-
-  // PERFIL MASTER (somente quem pode cadastrar adega)
-  const isMaster =
-    perfil &&
-    ["master", "superadmin", "dono"].includes(perfil.toLowerCase());
-
-  if (!authChecked) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
-        <p className="text-sm text-zinc-400">
-          Verificando acesso à Adega...
-        </p>
-      </div>
-    );
+  function sair() {
+    limparSessao();
+    router.replace("/login");
   }
 
+  const role = perfil.toLowerCase();
+  const isManager = ["administrador", "admin", "gerente", "master"].includes(role);
+  // Controle visual apenas. Autorização efetiva permanece obrigatória no backend.
+  const isMaster = ["master", "superadmin"].includes(role);
+  const sections: MenuSection[] = [
+    { title: "Principal", items: [
+      { label: "Início", href: "/", icon: "⌂" },
+      { label: "Produtos", href: "/produtos", icon: "▣" },
+      { label: "Clientes", href: "/clientes", icon: "♧" },
+      { label: "Pedidos", href: "/pedidos", icon: "▤" },
+    ] },
+  ];
+  if (isManager) sections.push({ title: "Gerenciamento", items: [
+    { label: "Gerenciar produtos", href: "/produtos/gerenciar", icon: "▦" },
+    { label: "Categorias", href: "/produtos/categorias", icon: "◫" },
+    { label: "Estoque", href: "/estoque", icon: "◈" },
+    { label: "Usuários", href: "/usuarios", icon: "♙" },
+    { label: "Cadastrar usuário", href: "/usuarios/cadastrar", icon: "+" },
+    ...(!isStaging ? [{ label: "Débitos", href: "/debitos", icon: "▤" }] : []),
+  ] });
+  if (isMaster) sections.push({ title: "Plataforma", items: [
+    { label: "Adegas", href: "/adegas", icon: "▥" },
+    { label: "Cadastrar adega", href: "/adegas/nova", icon: "+" },
+    { label: "Gerenciar perfis", href: "/perfis/gerenciar", icon: "⚙" },
+  ] });
+
+  if (!ready) return <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-500">Verificando acesso à sua adega...</div>;
+
+  const abertos = pedidos.filter((p) => (p.status ?? "").toLowerCase() === "aberto").length;
+  const valor = (n: number) => (loading || error ? "—" : n);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
-        {/* TOPO */}
-        <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🍷</span>
-            <div>
-              <h1 className="text-xl font-semibold tracking-wide">
-                {adegaNome ? `${adegaNome}` : "Adega"}
-              </h1>
-              <p className="text-xs text-zinc-400">
-                Controle de rótulos, estoque e vendas em um só lugar.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* DIV visível apenas para o perfil MASTER */}
-            {isMaster && (
-              <div>
-                <Link href="/adegas/nova" className="btn-primary">
-                  Cadastrar Adega
-                </Link>
-                <Link href="/adegas" className="btn-primary">
-                  Listar Adega
-                </Link>
-                <Link href="/perfis/gerenciar" className="btn-primary">
-                  Cadastrar Perfis
-                </Link>
-              </div>
-            )}
-
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-[11px] uppercase tracking-wide text-zinc-400">
-                  Logado como
-                </p>
-                <p className="text-sm font-medium text-amber-200">
-                  {userName}
-                  {perfil && (
-                    <span className="ml-1 text-xs text-amber-300">
-                      ({perfil})
-                    </span>
-                  )}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded-full border border-red-600/60 bg-red-900/30 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-red-200 transition hover:bg-red-800/40"
-              >
-                Sair
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* CONTEÚDO PRINCIPAL */}
-        <main className="flex flex-1 flex-col gap-10 md:flex-row md:items-stretch">
-          {/* LADO ESQUERDO */}
-          <section className="space-y-6 md:w-3/5">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
-                Organize sua{" "}
-                <span className="text-amber-300">ADEGA</span>
-                <span className="block">Saiba como está o movimento de sua adega</span>
-              </h2>
-
-              <p className="max-w-xl text-sm leading-relaxed text-zinc-300 sm:text-base">
-                Cadastre seus produtos, acompanhe as vendas e seu estoque.
-                NÃO SEJA PEGO DE SURPRESA!
-                Perfeito para adegas, bares e pequenos comércios.
-              </p>
-            </div>
-
-            {/* CARDS DE ATALHO / PAINEL */}
-            <div className="space-y-4">
-              {/* Atalhos principais */}
-              <div className="rounded-3xl border border-amber-500/25 bg-black/40 p-4 shadow-lg shadow-black/40">
-                <p className="mb-2 text-[11px] uppercase tracking-wide text-amber-200">
-                  Atalhos principais
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {/* Catálogo de produtos: todos podem ver */}
-                  <Link href="/produtos" className="btn-primary">
-                    Catálogo de Produtos
-                  </Link>
-
-                  {/* Gerenciador, Categorias, Estoque: apenas Admin / Gerente */}
-                  {isAdminOrGerente && (
-                    <>
-                      <Link href="/produtos/gerenciar" className="btn-primary">
-                        Gerenciador da Adega
-                      </Link>
-
-                      <Link
-                        href="/produtos/categorias"
-                        className="btn-primary"
-                      >
-                        Categorias de Produtos
-                      </Link>
-
-                      <Link href="/estoque" className="btn-primary">
-                        Estoque
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Operações do dia a dia */}
-              <div className="rounded-3xl border border-zinc-800 bg-zinc-950/70 p-4 shadow-lg shadow-black/30">
-                <p className="mb-2 text-[11px] uppercase tracking-wide text-zinc-400">
-                  Operações do dia a dia
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {/* Clientes e Pedidos */}
-                  <Link href="/clientes" className="btn-primary">
-                    Cadastrar / Listar Clientes
-                  </Link>
-
-                  <Link href="/pedidos" className="btn-primary">
-                    Pedidos
-                  </Link>
-
-                  {/* Usuários: somente Admin / Gerente */}
-                  {isAdminOrGerente && (
-                    <>
-                      <Link href="/usuarios/cadastrar" className="btn-primary">
-                        Cadastrar usuário
-                      </Link>
-
-                      <Link href="/usuarios" className="btn-primary">
-                        Listar usuário
-                      </Link>
-
-                      <Link href="/debitos" className="btn-primary">
-                        Cadastrar Débitos
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* LADO DIREITO – CARD RESUMO */}
-          <aside className="md:w-2/5">
-            <div className="h-full rounded-3xl border border-amber-500/20 bg-gradient-to-br from-zinc-900/80 via-zinc-950 to-black p-5 shadow-xl shadow-black/40">
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-amber-200">
-                Visão geral da adega
-              </h3>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
-                    <p className="text-xs text-zinc-400">Produtos</p>
-                    <p className="mt-2 text-2xl font-semibold text-amber-300">
-                      {loading ? "—" : produtos.filter((p) => p.ativo).length}
-                    </p>
-                    <p className="mt-1 text-[11px] text-zinc-500">
-                      Total de rótulos cadastrados.
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
-                    <p className="text-xs text-zinc-400">Categorias</p>
-                    <p className="mt-2 text-2xl font-semibold text-amber-300">
-                      {loading ? "—" : categorias.length}
-                    </p>
-                    <p className="mt-1 text-[11px] text-zinc-500">
-                      Agrupamentos para organizar o catálogo.
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
-                    <p className="text-xs text-zinc-400">Pedidos</p>
-                    <p className="mt-2 text-2xl font-semibold text-amber-300">
-                      {loading ? "—" : pedidosAbertos}
-                    </p>
-                    <p className="mt-1 text-[11px] text-zinc-500">
-                      Pedidos aguardando confirmação.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4 text-xs text-zinc-300">
-                  <p className="mb-1 text-[11px] uppercase tracking-wide text-zinc-400">
-                    Próximos passos
-                  </p>
-                  <ul className="list-disc space-y-1 pl-4">
-                    <li>Cadastre algumas categorias (ex.: Tintos, Brancos).</li>
-                    <li>Inclua seus primeiros rótulos no catálogo.</li>
-                    <li>Acesse o gerenciador para atualizar estoque.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </main>
-
-        <footer className="mt-8 border-t border-zinc-800 pt-4 text-center text-xs text-zinc-500">
-          {adegaNome ? adegaNome : "Adegas"} • Projeto em
-          desenvolvimento •{" "}
-          <span className="text-amber-300">frontend Next.js</span>
-        </footer>
+    <AppLayout
+      title="Visão geral"
+      subtitle="Painel principal"
+      adegaNome={adegaNome || "Minha Adega"}
+      usuarioNome={userName}
+      usuarioPerfil={perfil}
+      sections={sections}
+      onLogout={sair}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-sm text-slate-500">Bem-vindo ao seu espaço de gestão</p>
+          <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{adegaNome || "Sua adega"}</h2>
+          <p className="mt-2 text-sm text-slate-500">Acompanhe seu catálogo, pedidos e operações em um só lugar.</p>
+        </div>
+        {isManager && <Link href="/produtos/gerenciar" className="rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-700">Gerenciar produtos →</Link>}
       </div>
-    </div>
+
+      {error && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Não foi possível atualizar os indicadores. Verifique a conexão com a API.</div>}
+      <section aria-label="Indicadores" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <Metric label="Produtos ativos" value={valor(produtos.filter((p) => p.ativo).length)} detail="No catálogo" />
+        <Metric label="Categorias" value={valor(categorias.length)} detail="Grupos cadastrados" />
+        <Metric label="Pedidos abertos" value={valor(abertos)} detail="Aguardando andamento" />
+        <Metric label="Total de pedidos" value={valor(pedidos.length)} detail="Pedidos encontrados" />
+      </section>
+      <div className="grid gap-5 xl:grid-cols-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-3">
+          <h3 className="text-base font-bold">Acesso rápido</h3>
+          <p className="mt-1 text-sm text-slate-500">O que você deseja fazer hoje?</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Link href="/produtos" className="rounded-xl border border-slate-200 p-4 hover:border-orange-300 hover:bg-orange-50"><b className="block text-sm">Catálogo de produtos</b><span className="text-xs text-slate-500">Consulte seus produtos</span></Link>
+            <Link href="/pedidos" className="rounded-xl border border-slate-200 p-4 hover:border-orange-300 hover:bg-orange-50"><b className="block text-sm">Pedidos</b><span className="text-xs text-slate-500">Acompanhe as operações</span></Link>
+            <Link href="/clientes" className="rounded-xl border border-slate-200 p-4 hover:border-orange-300 hover:bg-orange-50"><b className="block text-sm">Clientes</b><span className="text-xs text-slate-500">Consulte seus clientes</span></Link>
+            {isManager && <Link href="/estoque" className="rounded-xl border border-slate-200 p-4 hover:border-orange-300 hover:bg-orange-50"><b className="block text-sm">Estoque</b><span className="text-xs text-slate-500">Gerencie entradas e quantidades</span></Link>}
+          </div>
+        </section>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
+          <h3 className="text-base font-bold">Comece por aqui</h3>
+          <p className="mt-1 text-sm text-slate-500">Primeiros passos para organizar sua adega.</p>
+          <ol className="mt-5 list-inside list-decimal space-y-3 text-sm text-slate-700">
+            <li>Configure suas categorias</li>
+            <li>Cadastre os produtos</li>
+            <li>Atualize o estoque</li>
+          </ol>
+          {isManager && <Link href="/produtos/categorias" className="mt-5 inline-block text-sm font-semibold text-orange-700 hover:underline">Organizar categorias →</Link>}
+        </section>
+      </div>
+      <p className="pb-3 text-center text-xs text-slate-400">IMBEBI Tec da Informação · Sistema de gestão</p>
+    </AppLayout>
   );
 }
