@@ -86,7 +86,7 @@ export default function AdegasPage() {
       // Verificar se é perfil MASTER
       const isMaster =
         perfilNome &&
-        ["master", "superadmin", "dono"].includes(
+        ["master", "superadmin", "dono", "administrador imbebi"].includes(
           perfilNome.toLowerCase()
         );
 
@@ -230,7 +230,7 @@ export default function AdegasPage() {
               + Nova Adega
             </Link>
 
-             <Link href="/" className="btn-primary">
+            <Link href="/" className="btn-primary">
               Home
             </Link>
 

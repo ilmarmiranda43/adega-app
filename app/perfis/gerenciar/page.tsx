@@ -49,31 +49,35 @@ export default function GerenciarPerfisPage() {
   const [erro, setErro] = useState<string | null>(null);
 
   const perfisFiltrados =
-  form.adega_id === ""
-    ? []
-    : perfis.filter((p) => p.adega_id === Number(form.adega_id));
+    form.adega_id === ""
+      ? []
+      : perfis.filter((p) => p.adega_id === Number(form.adega_id));
 
   const { user, userName } = useAuth();
   const router = useRouter();
 
   // 🔒 Só MASTER pode acessar
-    const usuarioLogado: any =
-        typeof window !== "undefined" ? obterUsuarioAtual() : null;
+  const usuarioLogado: any =
+    typeof window !== "undefined" ? obterUsuarioAtual() : null;
 
-    const perfilBruto: any =
-      usuarioLogado?.perfil ?? usuarioLogado?.perfil_nome ?? null;
-    
-    let perfilNome = "";
+  const perfilBruto: any =
+    usuarioLogado?.perfil ?? usuarioLogado?.perfil_nome ?? null;
 
-    if (typeof perfilBruto === "string") {
-      perfilNome = perfilBruto;
-    } else if (perfilBruto && typeof perfilBruto === "object") {
-      perfilNome = perfilBruto.nome ?? perfilBruto.descricao ?? "";
-    }
+  let perfilNome = "";
 
-  console.log("Valores de perfil : " + perfilNome )
+  if (typeof perfilBruto === "string") {
+    perfilNome = perfilBruto;
+  } else if (perfilBruto && typeof perfilBruto === "object") {
+    perfilNome = perfilBruto.nome ?? perfilBruto.descricao ?? "";
+  }
 
-  if (perfilNome !== "Master") {
+  console.log("Valores de perfil : " + perfilNome)
+
+  if (
+    !["master", "administrador imbebi"].includes(
+      perfilNome.trim().toLowerCase()
+    )
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
         <div className="rounded-2xl border border-red-700 bg-red-950/40 px-6 py-4 text-center">
@@ -377,8 +381,8 @@ export default function GerenciarPerfisPage() {
                     {saving
                       ? "Salvando..."
                       : form.idEditando
-                      ? "Salvar alterações"
-                      : "Cadastrar perfil"}
+                        ? "Salvar alterações"
+                        : "Cadastrar perfil"}
                   </button>
                   {form.idEditando && (
                     <button
@@ -419,11 +423,11 @@ export default function GerenciarPerfisPage() {
                 </p>
               ) : perfisFiltrados.length === 0 ? (
                 <p className="text-sm text-zinc-300">
-                    Nenhum perfil cadastrado para esta adega.
+                  Nenhum perfil cadastrado para esta adega.
                 </p>
-                ) : (
+              ) : (
                 <div className="space-y-2 text-xs sm:text-sm">
-                    {perfisFiltrados.map((p) => (
+                  {perfisFiltrados.map((p) => (
                     <div
                       key={p.id}
                       className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 sm:flex-row sm:items-center sm:justify-between"

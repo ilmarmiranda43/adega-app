@@ -63,7 +63,9 @@ export default function EditarAdegaPage() {
 
       const isMaster =
         perfilNome &&
-        ["master", "superadmin", "dono"].includes(perfilNome.toLowerCase());
+        ["master", "superadmin", "dono", "administrador imbebi"].includes(
+          perfilNome.trim().toLowerCase()
+        );
 
       if (!isMaster) {
         setPermissaoNegada(true);
@@ -266,12 +268,12 @@ export default function EditarAdegaPage() {
 
                 <div className="md:col-span-2">
                   <label className="text-xs text-zinc-400">TextMeBot API Key</label>
-                  
+
                   <input
                     className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
                     value={form.textmebot_api_key ?? ""}
                     onChange={(e) =>
-                        setForm((prev) => ({ ...prev, textmebot_api_key: e.target.value }))
+                      setForm((prev) => ({ ...prev, textmebot_api_key: e.target.value }))
                     }
                   />
                 </div>
