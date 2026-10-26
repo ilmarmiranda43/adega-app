@@ -79,28 +79,38 @@ export default function Home() {
   const role = perfil.toLowerCase();
   const isManager = ["administrador", "admin", "gerente", "master"].includes(role);
   // Controle visual apenas. Autorização efetiva permanece obrigatória no backend.
-  const isMaster = ["master", "superadmin"].includes(role);
+  const isMaster = [
+    "master",
+    "superadmin",
+    "administrador imbebi",
+  ].includes(role);
   const sections: MenuSection[] = [
-    { title: "Principal", items: [
-      { label: "Início", href: "/", icon: "⌂" },
-      { label: "Produtos", href: "/produtos", icon: "▣" },
-      { label: "Clientes", href: "/clientes", icon: "♧" },
-      { label: "Pedidos", href: "/pedidos", icon: "▤" },
-    ] },
+    {
+      title: "Principal", items: [
+        { label: "Início", href: "/", icon: "⌂" },
+        { label: "Produtos", href: "/produtos", icon: "▣" },
+        { label: "Clientes", href: "/clientes", icon: "♧" },
+        { label: "Pedidos", href: "/pedidos", icon: "▤" },
+      ]
+    },
   ];
-  if (isManager) sections.push({ title: "Gerenciamento", items: [
-    { label: "Gerenciar produtos", href: "/produtos/gerenciar", icon: "▦" },
-    { label: "Categorias", href: "/produtos/categorias", icon: "◫" },
-    { label: "Estoque", href: "/estoque", icon: "◈" },
-    { label: "Usuários", href: "/usuarios", icon: "♙" },
-    { label: "Cadastrar usuário", href: "/usuarios/cadastrar", icon: "+" },
-    ...(!isStaging ? [{ label: "Débitos", href: "/debitos", icon: "▤" }] : []),
-  ] });
-  if (isMaster) sections.push({ title: "Plataforma", items: [
-    { label: "Adegas", href: "/adegas", icon: "▥" },
-    { label: "Cadastrar adega", href: "/adegas/nova", icon: "+" },
-    { label: "Gerenciar perfis", href: "/perfis/gerenciar", icon: "⚙" },
-  ] });
+  if (isManager) sections.push({
+    title: "Gerenciamento", items: [
+      { label: "Gerenciar produtos", href: "/produtos/gerenciar", icon: "▦" },
+      { label: "Categorias", href: "/produtos/categorias", icon: "◫" },
+      { label: "Estoque", href: "/estoque", icon: "◈" },
+      { label: "Usuários", href: "/usuarios", icon: "♙" },
+      { label: "Cadastrar usuário", href: "/usuarios/cadastrar", icon: "+" },
+      ...(!isStaging ? [{ label: "Débitos", href: "/debitos", icon: "▤" }] : []),
+    ]
+  });
+  if (isMaster) sections.push({
+    title: "Plataforma", items: [
+      { label: "Adegas", href: "/adegas", icon: "▥" },
+      { label: "Cadastrar adega", href: "/adegas/nova", icon: "+" },
+      { label: "Gerenciar perfis", href: "/perfis/gerenciar", icon: "⚙" },
+    ]
+  });
 
   if (!ready) return <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-500">Verificando acesso à sua adega...</div>;
 
