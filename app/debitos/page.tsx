@@ -67,6 +67,8 @@ function brl(v: number) {
   return `R$ ${Number(v).toFixed(2).replace(".", ",")}`;
 }
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function DebitosPage() {
   const router = useRouter();
 
@@ -530,18 +532,19 @@ async function marcarWhatsAppBackend(debitoId: number) {
   }
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <AdegaPageShell title="Débitos avulsos" subtitle="Disponível somente quando o módulo estiver habilitado na API">
+    <div className="text-slate-900">
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
             <h1 className="text-2xl font-semibold">Débitos avulsos</h1>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-slate-500">
               Cadastre débitos sem pedido, feche quando pago e envie cobrança via WhatsApp.
             </p>
             {adegaId ? (
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-slate-500">
                 Adega:{" "}
-                <span className="text-zinc-300">
+                <span className="text-slate-700">
                   {adegaNome ? adegaNome : `#${adegaId}`}
                 </span>
               </p>
@@ -550,7 +553,7 @@ async function marcarWhatsAppBackend(debitoId: number) {
 
           <div className="flex items-center gap-2">
             <select
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
               value={statusFiltro}
               onChange={(e) => setStatusFiltro(e.target.value as any)}
               disabled={loading}
@@ -580,14 +583,14 @@ async function marcarWhatsAppBackend(debitoId: number) {
         </div>
 
         {!getToken() ? (
-          <div className="mt-4 rounded-lg border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-200">
+          <div className="mt-4 rounded-lg border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-700">
             Nenhum token encontrado no <b>localStorage</b> (chave{" "}
             <code>adega_token</code>). Faça login novamente.
           </div>
         ) : null}
 
         {!adegaId ? (
-          <div className="mt-4 rounded-lg border border-amber-900/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-200">
+          <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
             Não encontrei <code>adega_id</code> no <code>adega_user</code>. Verifique
             se você salva o usuário no localStorage com a chave{" "}
             <b>adega_user</b>.
@@ -595,19 +598,19 @@ async function marcarWhatsAppBackend(debitoId: number) {
         ) : null}
 
         {msg ? (
-          <div className="mt-4 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-200">
+          <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
             {msg}
           </div>
         ) : null}
 
         {/* Conexão WhatsApp/Baileys */}
-        <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-200">
+              <h2 className="text-sm font-semibold text-slate-700">
                 Conexão do WhatsApp
               </h2>
-              <p className="mt-1 text-xs text-zinc-400">
+              <p className="mt-1 text-xs text-slate-500">
                 Conecte o WhatsApp da adega antes de enviar cobranças.
               </p>
               <div className="mt-2 flex items-center gap-2">
@@ -623,7 +626,7 @@ async function marcarWhatsAppBackend(debitoId: number) {
                   className={`text-xs ${
                     whatsappConectado
                       ? "text-emerald-300"
-                      : "text-zinc-400"
+                      : "text-slate-500"
                   }`}
                 >
                   {whatsappStatus ||
@@ -644,13 +647,13 @@ async function marcarWhatsAppBackend(debitoId: number) {
           </div>
 
           {whatsappStatus ? (
-            <div className="mt-3 rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-300">
+            <div className="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
               {whatsappStatus}
             </div>
           ) : null}
 
           {qrCode ? (
-            <div className="mt-4 flex flex-col items-center rounded-xl bg-white p-4 text-center text-zinc-950">
+            <div className="mt-4 flex flex-col items-center rounded-xl bg-white p-4 text-center text-white">
               <p className="mb-3 max-w-md text-sm">
                 No celular, abra o WhatsApp, acesse <b>Dispositivos conectados</b>,
                 selecione <b>Conectar dispositivo</b> e leia o código abaixo.
@@ -668,14 +671,14 @@ async function marcarWhatsAppBackend(debitoId: number) {
         </div>
 
         {/* Form */}
-        <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
-          <h2 className="text-sm font-semibold text-zinc-200">Novo débito</h2>
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
+          <h2 className="text-sm font-semibold text-slate-700">Novo débito</h2>
 
           <div className="mt-3 grid gap-3 md:grid-cols-4">
             <div className="md:col-span-2">
-              <label className="text-xs text-zinc-400">Cliente</label>
+              <label className="text-xs text-slate-500">Cliente</label>
               <select
-                className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                 value={clienteId}
                 onChange={(e) =>
                   setClienteId(e.target.value ? Number(e.target.value) : "")
@@ -692,9 +695,9 @@ async function marcarWhatsAppBackend(debitoId: number) {
             </div>
 
             <div>
-              <label className="text-xs text-zinc-400">Valor (R$)</label>
+              <label className="text-xs text-slate-500">Valor (R$)</label>
               <input
-                className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
                 placeholder="Ex: 35,90"
@@ -704,10 +707,10 @@ async function marcarWhatsAppBackend(debitoId: number) {
             </div>
 
             <div>
-              <label className="text-xs text-zinc-400">Vencimento</label>
+              <label className="text-xs text-slate-500">Vencimento</label>
               <input
                 type="date"
-                className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                 value={vencimento}
                 onChange={(e) => setVencimento(e.target.value)}
                 disabled={loading || !adegaId}
@@ -715,9 +718,9 @@ async function marcarWhatsAppBackend(debitoId: number) {
             </div>
 
             <div className="md:col-span-4">
-              <label className="text-xs text-zinc-400">Descrição</label>
+              <label className="text-xs text-slate-500">Descrição</label>
               <input
-                className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
                 placeholder="Ex: Compra fiado no balcão"
@@ -738,10 +741,10 @@ async function marcarWhatsAppBackend(debitoId: number) {
         </div>
 
         {/* Lista */}
-        <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-800">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200">
           <table className="w-full">
-            <thead className="bg-zinc-950">
-              <tr className="text-left text-xs text-zinc-400">
+            <thead className="bg-white">
+              <tr className="text-left text-xs text-slate-500">
                 <th className="px-4 py-3">Cliente</th>
                 <th className="px-4 py-3">Valor</th>
                 <th className="px-4 py-3">Vencimento</th>
@@ -755,7 +758,7 @@ async function marcarWhatsAppBackend(debitoId: number) {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-zinc-900 bg-black">
+            <tbody className="divide-y divide-zinc-900 bg-white">
               {debitos.map((d) => (
                 <tr key={d.id} className="text-sm">
                   <td className="px-4 py-3">{clienteNome(d.cliente_id)}</td>
@@ -767,18 +770,18 @@ async function marcarWhatsAppBackend(debitoId: number) {
                   <td className="px-4 py-3">
                     
                     {d.whatsapp_enviado ? (
-                      <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-200">
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-700">
                         Enviado
                       </span>
                     ) : (
-                      <span className="rounded-full bg-zinc-700/30 px-2 py-1 text-[11px] font-semibold text-zinc-300">
+                      <span className="rounded-full bg-zinc-700/30 px-2 py-1 text-[11px] font-semibold text-slate-700">
                         Não enviado
                       </span>
                     )}
                   </td>
 
                   <td className="px-4 py-3">
-                    <span className="text-zinc-300">
+                    <span className="text-slate-700">
                       {d.descricao ? d.descricao : "—"}
                     </span>
                   </td>
@@ -787,7 +790,7 @@ async function marcarWhatsAppBackend(debitoId: number) {
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => enviarWhatsApp(d.id)}
-                        className="rounded-lg bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-950 hover:bg-white disabled:opacity-50"
+                        className="rounded-lg bg-zinc-100 px-3 py-2 text-xs font-semibold text-white hover:bg-white disabled:opacity-50"
                         disabled={loading || d.status !== "aberto"}
                         title={
                           d.status !== "aberto"
@@ -819,7 +822,7 @@ async function marcarWhatsAppBackend(debitoId: number) {
               {!debitos.length ? (
                 <tr>
                   <td
-                    className="px-4 py-10 text-center text-sm text-zinc-500"
+                    className="px-4 py-10 text-center text-sm text-slate-500"
                     colSpan={7}
                   >
                     Nenhum débito encontrado.
@@ -831,5 +834,6 @@ async function marcarWhatsAppBackend(debitoId: number) {
         </div>
       </div>
     </div>
+    </AdegaPageShell>
   );
 }

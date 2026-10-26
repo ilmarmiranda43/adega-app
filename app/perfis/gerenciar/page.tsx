@@ -40,6 +40,8 @@ const defaultForm: FormState = {
   ativo: true,
 };
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function GerenciarPerfisPage() {
   const [adegas, setAdegas] = useState<Adega[]>([]);
   const [perfis, setPerfis] = useState<Perfil[]>([]);
@@ -79,17 +81,17 @@ export default function GerenciarPerfisPage() {
     )
   ) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
-        <div className="rounded-2xl border border-red-700 bg-red-950/40 px-6 py-4 text-center">
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-900">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-center">
           <h1 className="mb-2 text-lg font-semibold">
             Acesso restrito
           </h1>
-          <p className="text-sm text-zinc-300">
+          <p className="text-sm text-slate-700">
             Apenas o usuário <span className="font-semibold">master</span> pode gerenciar perfis.
           </p>
           <button
             onClick={() => router.push("/")}
-            className="mt-4 rounded-full bg-amber-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black hover:bg-amber-400"
+            className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black hover:bg-orange-700"
           >
             Voltar para Home
           </button>
@@ -210,20 +212,21 @@ export default function GerenciarPerfisPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
+    <AdegaPageShell title="Gerenciar perfis" subtitle="Painel de gestão">
+    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-slate-900">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
         <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-semibold">
               Gerenciar Perfis por Adega
             </h1>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-slate-500">
               Olá, {userName} (master)
             </p>
           </div>
           <Link
             href="/"
-            className="rounded-full border border-amber-500/40 bg-amber-900/20 px-4 py-1.5 text-xs font-medium text-amber-100 transition hover:bg-amber-800/50"
+            className="rounded-full border border-amber-500/40 bg-orange-50 px-4 py-1.5 text-xs font-medium text-amber-100 transition hover:bg-amber-800/50"
           >
             ← Home
           </Link>
@@ -232,7 +235,7 @@ export default function GerenciarPerfisPage() {
         <main className="flex flex-1 flex-col gap-6 lg:flex-row">
           {/* FORM */}
           <section className="lg:w-1/3">
-            <div className="rounded-2xl border border-amber-900/60 bg-zinc-900/70 p-4 shadow-lg shadow-black/40">
+            <div className="rounded-2xl border border-amber-900/60 bg-slate-50 p-4 shadow-lg shadow-black/40">
               <h2 className="mb-3 text-lg font-semibold">
                 {form.idEditando ? "Editar perfil" : "Novo perfil"}
               </h2>
@@ -243,7 +246,7 @@ export default function GerenciarPerfisPage() {
 
               <form onSubmit={handleSubmit} className="space-y-3 text-sm">
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
+                  <label className="mb-1 block text-xs text-slate-700">
                     Adega
                   </label>
                   <select
@@ -257,7 +260,7 @@ export default function GerenciarPerfisPage() {
                         setPerfis([]);
                       }
                     }}
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
                   >
                     <option value="">Selecione uma adega</option>
                     {adegas.map((a) => (
@@ -269,7 +272,7 @@ export default function GerenciarPerfisPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
+                  <label className="mb-1 block text-xs text-slate-700">
                     Nome do perfil
                   </label>
                   <input
@@ -278,13 +281,13 @@ export default function GerenciarPerfisPage() {
                     onChange={(e) =>
                       handleChangeField("nome", e.target.value)
                     }
-                    className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-300">
+                  <label className="mb-1 block text-xs text-slate-700">
                     Descrição
                   </label>
                   <textarea
@@ -292,29 +295,29 @@ export default function GerenciarPerfisPage() {
                     onChange={(e) =>
                       handleChangeField("descricao", e.target.value)
                     }
-                    className="h-20 w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                    className="h-20 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
                   />
                 </div>
 
                 {/* permissões */}
-                <fieldset className="space-y-1 rounded-md border border-zinc-700/70 px-3 py-2">
-                  <legend className="px-1 text-xs text-zinc-400">
+                <fieldset className="space-y-1 rounded-md border border-slate-200 px-3 py-2">
+                  <legend className="px-1 text-xs text-slate-500">
                     Permissões
                   </legend>
 
-                  <label className="flex items-center gap-2 text-xs text-zinc-300">
+                  <label className="flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
                       checked={form.eh_admin}
                       onChange={(e) =>
                         handleChangeField("eh_admin", e.target.checked)
                       }
-                      className="h-3 w-3 rounded border-zinc-600 bg-zinc-900"
+                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
                     />
                     É administrador da adega
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs text-zinc-300">
+                  <label className="flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
                       checked={form.pode_gerenciar_usuarios}
@@ -324,12 +327,12 @@ export default function GerenciarPerfisPage() {
                           e.target.checked
                         )
                       }
-                      className="h-3 w-3 rounded border-zinc-600 bg-zinc-900"
+                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
                     />
                     Pode gerenciar usuários
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs text-zinc-300">
+                  <label className="flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
                       checked={form.pode_gerenciar_estoque}
@@ -339,12 +342,12 @@ export default function GerenciarPerfisPage() {
                           e.target.checked
                         )
                       }
-                      className="h-3 w-3 rounded border-zinc-600 bg-zinc-900"
+                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
                     />
                     Pode gerenciar estoque
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs text-zinc-300">
+                  <label className="flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
                       checked={form.pode_gerenciar_clientes}
@@ -354,19 +357,19 @@ export default function GerenciarPerfisPage() {
                           e.target.checked
                         )
                       }
-                      className="h-3 w-3 rounded border-zinc-600 bg-zinc-900"
+                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
                     />
                     Pode gerenciar clientes
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs text-zinc-300">
+                  <label className="flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
                       checked={form.ativo}
                       onChange={(e) =>
                         handleChangeField("ativo", e.target.checked)
                       }
-                      className="h-3 w-3 rounded border-zinc-600 bg-zinc-900"
+                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
                     />
                     Ativo
                   </label>
@@ -376,7 +379,7 @@ export default function GerenciarPerfisPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex-1 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {saving
                       ? "Salvando..."
@@ -388,7 +391,7 @@ export default function GerenciarPerfisPage() {
                     <button
                       type="button"
                       onClick={limparFormulario}
-                      className="rounded-full border border-zinc-600 px-3 py-2 text-xs font-semibold text-zinc-100 transition hover:bg-zinc-800/70"
+                      className="rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-900 transition hover:bg-slate-100/70"
                     >
                       Cancelar
                     </button>
@@ -400,29 +403,29 @@ export default function GerenciarPerfisPage() {
 
           {/* LISTA */}
           <section className="lg:w-2/3">
-            <div className="rounded-2xl border border-amber-900/60 bg-zinc-900/70 p-4 shadow-lg shadow-black/40">
+            <div className="rounded-2xl border border-amber-900/60 bg-slate-50 p-4 shadow-lg shadow-black/40">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
                   Perfis da adega selecionada
                 </h2>
-                <span className="text-xs text-zinc-400">
+                <span className="text-xs text-slate-500">
                   Total:{" "}
-                  <span className="font-semibold text-amber-200">
+                  <span className="font-semibold text-orange-700">
                     {loading ? "—" : perfisFiltrados.length}
                   </span>
                 </span>
               </div>
 
               {form.adega_id === "" ? (
-                <p className="text-sm text-zinc-300">
+                <p className="text-sm text-slate-700">
                   Selecione uma adega para visualizar os perfis.
                 </p>
               ) : loading ? (
-                <p className="text-sm text-zinc-300">
+                <p className="text-sm text-slate-700">
                   Carregando perfis...
                 </p>
               ) : perfisFiltrados.length === 0 ? (
-                <p className="text-sm text-zinc-300">
+                <p className="text-sm text-slate-700">
                   Nenhum perfil cadastrado para esta adega.
                 </p>
               ) : (
@@ -430,16 +433,16 @@ export default function GerenciarPerfisPage() {
                   {perfisFiltrados.map((p) => (
                     <div
                       key={p.id}
-                      className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white/40 p-3 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-zinc-500">
+                          <span className="text-xs text-slate-500">
                             #{p.id}
                           </span>
                           <span className="font-semibold">{p.nome}</span>
                           {!p.ativo && (
-                            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-zinc-300">
+                            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-slate-700">
                               Inativo
                             </span>
                           )}
@@ -450,7 +453,7 @@ export default function GerenciarPerfisPage() {
                           )}
                         </div>
                         {p.descricao && (
-                          <p className="text-[11px] text-zinc-300">
+                          <p className="text-[11px] text-slate-700">
                             {p.descricao}
                           </p>
                         )}
@@ -460,14 +463,14 @@ export default function GerenciarPerfisPage() {
                         <button
                           type="button"
                           onClick={() => iniciarEdicao(p)}
-                          className="rounded-full border border-zinc-600 px-3 py-1 text-[11px] font-semibold text-zinc-100 transition hover:bg-zinc-800/80"
+                          className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-100/80"
                         >
                           Editar
                         </button>
                         <button
                           type="button"
                           onClick={() => handleExcluir(p.id)}
-                          className="rounded-full border border-red-600/70 px-3 py-1 text-[11px] font-semibold text-red-200 transition hover:bg-red-900/50"
+                          className="rounded-full border border-red-600/70 px-3 py-1 text-[11px] font-semibold text-red-700 transition hover:bg-red-900/50"
                         >
                           Excluir
                         </button>
@@ -481,5 +484,6 @@ export default function GerenciarPerfisPage() {
         </main>
       </div>
     </div>
+    </AdegaPageShell>
   );
 }

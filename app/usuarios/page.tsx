@@ -23,6 +23,8 @@ type Usuario = {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function ListaUsuariosPage() {
   const router = useRouter();
 
@@ -112,8 +114,8 @@ export default function ListaUsuariosPage() {
   // Enquanto está verificando permissão, não mostra nada
   if (verificandoPermissao) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-        <p className="text-sm text-zinc-400">Verificando permissões...</p>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
+        <p className="text-sm text-slate-500">Verificando permissões...</p>
       </div>
     );
   }
@@ -121,12 +123,12 @@ export default function ListaUsuariosPage() {
   // Se não for autorizado
   if (!autorizado) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-        <div className="rounded-2xl border border-red-600/60 bg-red-900/20 px-6 py-4 text-center">
-          <h1 className="text-lg font-semibold text-red-200">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-center">
+          <h1 className="text-lg font-semibold text-red-700">
             Acesso negado
           </h1>
-          <p className="mt-1 text-sm text-red-100/80">
+          <p className="mt-1 text-sm text-red-700">
             Apenas usuários com perfil <strong>Administrador</strong> ou{" "}
             <strong>Gerente</strong> podem acessar a gestão de usuários.
           </p>
@@ -137,12 +139,12 @@ export default function ListaUsuariosPage() {
 
   // Render principal
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="text-slate-900">
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">
         {/* Cabeçalho */}
-        <header className="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <header className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            {/* <h1 className="text-2xl font-semibold text-amber-300">
+            {/* <h1 className="text-2xl font-semibold text-orange-700">
               {adegaNome || "Minha Adega"} - Usuários <br />
             </h1> */}
 
@@ -150,12 +152,12 @@ export default function ListaUsuariosPage() {
               <h1 className="text-xl font-semibold">
                 {adegaNome || "Minha Adega"} - Usuários
               </h1>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-slate-500">
                 Olá, {userName} ({perfilNome})
               </p>
             </header>
 
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-slate-500">
               Visualize todos os usuários cadastrados e seus perfis.
             </p>
           </div>
@@ -164,7 +166,7 @@ export default function ListaUsuariosPage() {
             <button
             type="button"
             onClick={handleCancelar}
-            className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-950 hover:bg-amber-400 transition"
+            className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-orange-700 transition"
           >
             ← Home
           </button>
@@ -172,7 +174,7 @@ export default function ListaUsuariosPage() {
           <button
             type="button"
             onClick={() => router.push("/usuarios/cadastrar")}
-            className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-950 hover:bg-amber-400 transition"
+            className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-orange-700 transition"
           >
             Novo usuário
           </button>
@@ -182,24 +184,24 @@ export default function ListaUsuariosPage() {
 
         {/* Mensagens */}
         {erro && (
-          <div className="rounded-xl border border-red-500/60 bg-red-900/20 px-4 py-3 text-sm text-red-100">
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {erro}
           </div>
         )}
 
         {/* Lista */}
-        <main className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 shadow-lg">
+        <main className="rounded-2xl border border-slate-200 bg-white p-4 shadow-lg">
           {carregando ? (
-            <p className="text-sm text-zinc-400">Carregando usuários...</p>
+            <p className="text-sm text-slate-500">Carregando usuários...</p>
           ) : usuarios.length === 0 ? (
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-slate-500">
               Nenhum usuário cadastrado até o momento.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-xs uppercase tracking-wide text-zinc-400">
+                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
                     <th className="px-3 py-2 text-left">Nome</th>
                     <th className="px-3 py-2 text-left">E-mail</th>
                     <th className="px-3 py-2 text-left">Perfil</th>
@@ -209,15 +211,16 @@ export default function ListaUsuariosPage() {
                   {usuarios.map((u) => {
                     const perfilNome = u.perfil?.nome ?? "(sem perfil)";
                     return (
+    <AdegaPageShell title="Usuários" subtitle="Painel de gestão">
                       <tr
                         key={u.id}
-                        className="border-b border-zinc-900/80 hover:bg-zinc-900/40"
+                        className="border-b border-slate-200/80 hover:bg-slate-50/40"
                       >
                         <td className="px-3 py-2">{u.nome}</td>
-                        <td className="px-3 py-2 text-zinc-300">
+                        <td className="px-3 py-2 text-slate-700">
                           {u.email}
                         </td>
-                        <td className="px-3 py-2 text-amber-200">
+                        <td className="px-3 py-2 text-orange-700">
                           {perfilNome}
                         </td>
                       </tr>
@@ -230,5 +233,6 @@ export default function ListaUsuariosPage() {
         </main>
       </div>
     </div>
+    </AdegaPageShell>
   );
 }

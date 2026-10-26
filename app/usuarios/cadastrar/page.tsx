@@ -15,6 +15,8 @@ type Perfil = {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function CadastroUsuarioPage() {
   const router = useRouter();
 
@@ -215,20 +217,20 @@ export default function CadastroUsuarioPage() {
 
   if (verificandoPermissao) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-        <p className="text-sm text-zinc-400">Verificando permissões...</p>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
+        <p className="text-sm text-slate-500">Verificando permissões...</p>
       </div>
     );
   }
 
   if (!autorizado) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-        <div className="rounded-2xl border border-red-600/60 bg-red-900/20 px-6 py-4 text-center">
-          <h1 className="text-lg font-semibold text-red-200">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-center">
+          <h1 className="text-lg font-semibold text-red-700">
             Acesso negado
           </h1>
-          <p className="mt-1 text-sm text-red-100/80">
+          <p className="mt-1 text-sm text-red-700">
             Apenas usuários com perfil <strong>Administrador</strong> ou{" "}
             <strong>Gerente</strong> podem cadastrar usuários.
           </p>
@@ -238,23 +240,24 @@ export default function CadastroUsuarioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <AdegaPageShell title="Cadastrar usuário" subtitle="Painel de gestão">
+    <div className="text-slate-900">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8">
         {/* Cabeçalho */}
-        <header className="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <header className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            {/* <h1 className="text-2xl font-semibold text-amber-300">
+            {/* <h1 className="text-2xl font-semibold text-orange-700">
               {adegaNome || "Minha Adega"} - Cadastro de Usuários
             </h1> */}
             <header className="mb-4">
               <h1 className="text-xl font-semibold">
                 {adegaNome || "Minha Adega"} - Cadastro de Usuários
               </h1>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-slate-500">
                 Olá, {userName} ({perfilNome})
               </p>
             </header>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-slate-500">
               Crie novos usuários e defina o perfil de acesso à adega.
             </p>
           </div>
@@ -262,7 +265,7 @@ export default function CadastroUsuarioPage() {
           <button
             type="button"
             onClick={handleCancelar}
-            className="rounded-full border border-zinc-600 bg-zinc-900 px-3 py-1 text-xs font-medium uppercase tracking-wide text-zinc-200 hover:bg-zinc-800 transition"
+            className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-medium uppercase tracking-wide text-slate-700 hover:bg-slate-100 transition"
           >
             ← Home
           </button>
@@ -270,28 +273,28 @@ export default function CadastroUsuarioPage() {
 
         {/* Mensagens */}
         {erro && (
-          <div className="rounded-xl border border-red-500/60 bg-red-900/20 px-4 py-3 text-sm text-red-100">
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {erro}
           </div>
         )}
 
         {sucesso && (
-          <div className="rounded-xl border border-emerald-500/60 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-100">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
             {sucesso}
           </div>
         )}
 
         {/* Formulário */}
-        <main className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-6 shadow-lg">
+        <main className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Nome completo
                 </label>
                 <input
                   type="text"
-                  className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   required
@@ -299,12 +302,12 @@ export default function CadastroUsuarioPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   E-mail
                 </label>
                 <input
                   type="email"
-                  className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -312,12 +315,12 @@ export default function CadastroUsuarioPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Senha
                 </label>
                 <input
                   type="password"
-                  className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   required
@@ -327,12 +330,12 @@ export default function CadastroUsuarioPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Confirmar senha
                 </label>
                 <input
                   type="password"
-                  className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
                   value={confirmarSenha}
                   onChange={(e) => setConfirmarSenha(e.target.value)}
                   required
@@ -342,11 +345,11 @@ export default function CadastroUsuarioPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Perfil
                 </label>
                 <select
-                  className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 disabled:opacity-60"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200 disabled:opacity-60"
                   value={perfilId}
                   onChange={(e) => setPerfilId(e.target.value)}
                   disabled={carregandoPerfis || perfis.length === 0}
@@ -370,14 +373,14 @@ export default function CadastroUsuarioPage() {
               <button
                 type="button"
                 onClick={handleCancelar}
-                className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-medium uppercase tracking-wide text-zinc-200 hover:bg-zinc-800 transition"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-700 hover:bg-slate-100 transition"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={salvando}
-                className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-950 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                className="rounded-xl bg-orange-600 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-orange-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
               >
                 {salvando ? "Salvando..." : "Cadastrar usuário"}
               </button>
@@ -386,5 +389,6 @@ export default function CadastroUsuarioPage() {
         </main>
       </div>
     </div>
+    </AdegaPageShell>
   );
 }

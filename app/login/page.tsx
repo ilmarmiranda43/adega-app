@@ -53,7 +53,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
+    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-slate-900">
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-4 py-8">
         <header className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -62,7 +62,7 @@ export default function LoginPage() {
               <h1 className="text-xl font-semibold tracking-wide">
                 Adega&apos;s Shopping
               </h1>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-slate-500">
                 Acesso ao painel administrativo.
               </p>
             </div>
@@ -70,16 +70,16 @@ export default function LoginPage() {
         </header>
 
         <main className="flex-1">
-          <div className="rounded-2xl border border-amber-900/60 bg-zinc-900/70 p-5 shadow-lg shadow-black/50">
+          <div className="rounded-2xl border border-amber-900/60 bg-slate-50 p-5 shadow-lg shadow-black/50">
             {usuarioLogado ? (
               <div className="space-y-3 text-sm">
                 <p>
                   Logado como{" "}
-                  <span className="font-semibold text-amber-200">
+                  <span className="font-semibold text-orange-700">
                     {usuarioLogado.nome}
                   </span>
                   {perfilNome && (
-                    <span className="ml-1 text-xs text-amber-200">
+                    <span className="ml-1 text-xs text-orange-700">
                       ({perfilNome})
                     </span>
                   )}
@@ -87,13 +87,13 @@ export default function LoginPage() {
                 <div className="flex gap-2">
                   <Link
                     href="/produtos/gerenciar"
-                    className="flex-1 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-amber-500"
+                    className="flex-1 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-600"
                   >
                     Ir para Gerenciar Produtos
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="rounded-full border border-zinc-600 px-4 py-2 text-xs font-semibold text-zinc-100 hover:bg-zinc-800/60"
+                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100/60"
                   >
                     Sair
                   </button>
@@ -113,27 +113,27 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-3 text-sm">
                   <div>
-                    <label className="mb-1 block text-xs text-zinc-300">
+                    <label className="mb-1 block text-xs text-slate-700">
                       E-mail
                     </label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs text-zinc-300">
+                    <label className="mb-1 block text-xs text-slate-700">
                       Senha
                     </label>
                     <input
                       type="password"
                       value={senha}
                       onChange={(e) => setSenha(e.target.value)}
-                      className="w-full rounded-md border border-zinc-700 bg-zinc-950/60 px-2 py-1.5 text-sm text-zinc-50 outline-none focus:border-amber-500"
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
                       required
                     />
                   </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={carregando}
-                    className="mt-3 w-full rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-3 w-full rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {carregando ? "Entrando..." : "Entrar"}
                   </button>
@@ -151,7 +151,7 @@ export default function LoginPage() {
           </div>
         </main>
 
-        <footer className="mt-6 text-center text-[11px] text-zinc-500">
+        <footer className="mt-6 text-center text-[11px] text-slate-500">
           Perfis suportados: admin, gerente, usuario, cliente.
         </footer>
       </div>

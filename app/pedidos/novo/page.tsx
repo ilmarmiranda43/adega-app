@@ -7,6 +7,8 @@ import { criarPedido, ItemPedidoCreate, PedidoCreate } from "@/lib/api/pedidos";
 import { listarClientes, Cliente } from "@/lib/api/clientes";
 import { listarProdutos, Produto } from "@/lib/api/produtos";
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function NovoPedidoPage() {
   const router = useRouter();
   const [clienteId, setClienteId] = useState("");
@@ -96,8 +98,9 @@ export default function NovoPedidoPage() {
   }
 
   return (
+    <AdegaPageShell title="Novo pedido" subtitle="Painel de gestão">
     <main className="mx-auto max-w-3xl px-4 py-6 space-y-4">
-      {/* <h1 className="text-2xl font-semibold text-amber-200">
+      {/* <h1 className="text-2xl font-semibold text-orange-700">
         {adegaNome || "Minha Adega"} - Novo pedido
       </h1> */}
 
@@ -105,25 +108,25 @@ export default function NovoPedidoPage() {
         <h1 className="text-xl font-semibold">
           {adegaNome || "Minha Adega"} - Novo Pedido
         </h1>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-slate-500">
           Olá, {userName} ({perfilNome})
         </p>
       </header>
 
       {erro && <p className="text-sm text-red-400">{erro}</p>}
-      {carregandoDados && <p className="text-sm text-zinc-300">Carregando clientes e produtos...</p>}
+      {carregandoDados && <p className="text-sm text-slate-700">Carregando clientes e produtos...</p>}
 
       {!carregandoDados && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Cliente
               </label>
               <select
                 value={clienteId}
                 onChange={(e) => setClienteId(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-100"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="">Selecione um cliente</option>
                 {clientes.map((c) => (
@@ -135,26 +138,26 @@ export default function NovoPedidoPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Observações
               </label>
               <textarea
                 value={observacoes}
                 onChange={(e) => setObservacoes(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400 min-h-[60px]"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 min-h-[60px]"
               />
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-zinc-200">
+              <h2 className="text-sm font-semibold text-slate-700">
                 Itens do pedido
               </h2>
               <button
                 type="button"
                 onClick={adicionarLinha}
-                className="rounded-full border border-amber-500/60 bg-amber-900/20 px-3 py-1 text-xs font-medium text-amber-200 hover:bg-amber-800/40"
+                className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700 hover:bg-amber-800/40"
               >
                 + Adicionar item
               </button>
@@ -164,11 +167,11 @@ export default function NovoPedidoPage() {
               {itens.map((item, index) => (
                 <div
                   key={index}
-                  className="flex flex-col gap-2 rounded-xl border border-zinc-700/70 bg-zinc-900/50 p-3 sm:flex-row sm:items-center"
+                  className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center"
                 >
                   <div className="flex-1 flex gap-2">
                     <div className="flex-1">
-                      <label className="block text-[11px] text-zinc-400 mb-1">
+                      <label className="block text-[11px] text-slate-500 mb-1">
                         Produto
                       </label>
                       <select
@@ -176,7 +179,7 @@ export default function NovoPedidoPage() {
                         onChange={(e) =>
                           atualizarItem(index, "produto_id", e.target.value)
                         }
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-sm text-zinc-100"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900"
                       >
                         <option value="">Selecione</option>
                         {produtos.map((p) => (
@@ -187,7 +190,7 @@ export default function NovoPedidoPage() {
                       </select>
                     </div>
                     <div className="w-28">
-                      <label className="block text-[11px] text-zinc-400 mb-1">
+                      <label className="block text-[11px] text-slate-500 mb-1">
                         Quantidade
                       </label>
                       <input
@@ -197,7 +200,7 @@ export default function NovoPedidoPage() {
                         onChange={(e) =>
                           atualizarItem(index, "quantidade", e.target.value)
                         }
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-sm text-zinc-100"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900"
                       />
                     </div>
                   </div>
@@ -206,7 +209,7 @@ export default function NovoPedidoPage() {
                     <button
                       type="button"
                       onClick={() => removerLinha(index)}
-                      className="self-start rounded-full border border-red-600/60 bg-red-900/30 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-red-200 hover:bg-red-800/40"
+                      className="self-start rounded-full border border-red-200 bg-red-900/30 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-red-700 hover:bg-red-800/40"
                     >
                       Remover
                     </button>
@@ -220,14 +223,14 @@ export default function NovoPedidoPage() {
             <button
               type="button"
               onClick={() => router.push("/pedidos")}
-              className="rounded-full border border-zinc-600/60 bg-zinc-900/40 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-zinc-200 hover:bg-zinc-800/60"
+              className="rounded-full border border-slate-300/60 bg-slate-50/40 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-slate-700 hover:bg-slate-100/60"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={salvando}
-              className="rounded-full border border-amber-500/60 bg-amber-900/40 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-amber-100 hover:bg-amber-800/60 disabled:opacity-60"
+              className="rounded-full border border-orange-200 bg-amber-900/40 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-amber-100 hover:bg-amber-800/60 disabled:opacity-60"
             >
               {salvando ? "Salvando..." : "Salvar pedido"}
             </button>
@@ -235,5 +238,6 @@ export default function NovoPedidoPage() {
         </form>
       )}
     </main>
+    </AdegaPageShell>
   );
 }

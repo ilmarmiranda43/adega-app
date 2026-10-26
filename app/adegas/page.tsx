@@ -22,6 +22,8 @@ interface Adega {
   atualizado_em?: string;
 }
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function AdegasPage() {
   const router = useRouter();
 
@@ -145,8 +147,8 @@ export default function AdegasPage() {
 
   if (!authChecked && !permissaoNegada && loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100">
-        <p className="text-sm text-zinc-400">
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-900">
+        <p className="text-sm text-slate-500">
           Verificando acesso à Adega...
         </p>
       </div>
@@ -155,12 +157,12 @@ export default function AdegasPage() {
 
   if (permissaoNegada) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100 px-4">
-        <div className="max-w-md rounded-2xl border border-red-600/60 bg-red-900/20 p-6 text-center">
-          <h1 className="mb-2 text-lg font-semibold text-red-200">
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-900 px-4">
+        <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+          <h1 className="mb-2 text-lg font-semibold text-red-700">
             Acesso negado
           </h1>
-          <p className="mb-4 text-sm text-red-100">
+          <p className="mb-4 text-sm text-red-700">
             Você não tem permissão para acessar o cadastro de adegas.
             Somente o perfil <span className="font-semibold">Master</span>{" "}
             pode visualizar esta página.
@@ -168,7 +170,7 @@ export default function AdegasPage() {
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-medium uppercase tracking-wide text-zinc-100 hover:bg-zinc-800"
+            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-900 hover:bg-slate-100"
           >
             Voltar para o início
           </button>
@@ -178,7 +180,8 @@ export default function AdegasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
+    <AdegaPageShell title="Gerenciar adegas" subtitle="Painel de gestão">
+    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-slate-900">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
         {/* TOPO */}
         <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -188,7 +191,7 @@ export default function AdegasPage() {
               <h1 className="text-xl font-semibold tracking-wide">
                 Gestão de Adegas
               </h1>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-slate-500">
                 Cadastro de todas as adegas do sistema (somente Master).
               </p>
             </div>
@@ -196,21 +199,21 @@ export default function AdegasPage() {
 
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-[11px] uppercase tracking-wide text-zinc-400">
+              <p className="text-[11px] uppercase tracking-wide text-slate-500">
                 Logado como
               </p>
-              <p className="text-sm font-medium text-amber-200">
+              <p className="text-sm font-medium text-orange-700">
                 {userName}
                 {perfil && (
-                  <span className="ml-1 text-xs text-amber-300">
+                  <span className="ml-1 text-xs text-orange-700">
                     ({perfil})
                   </span>
                 )}
               </p>
               {adegaNome && (
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-slate-500">
                   Adega atual:{" "}
-                  <span className="text-amber-200">{adegaNome}</span>
+                  <span className="text-orange-700">{adegaNome}</span>
                 </p>
               )}
             </div>
@@ -221,7 +224,7 @@ export default function AdegasPage() {
         {/* CONTEÚDO */}
         <main className="flex-1 space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-amber-200">
+            <h2 className="text-lg font-semibold text-orange-700">
               Lista de Adegas
             </h2>
 
@@ -236,19 +239,19 @@ export default function AdegasPage() {
 
           </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-4 shadow-lg shadow-black/40">
+          <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-lg shadow-black/40">
             {erro && (
-              <div className="mb-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              <div className="mb-3 rounded-lg border border-red-500/40 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {erro}
               </div>
             )}
 
             {loading ? (
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-slate-500">
                 Carregando adegas...
               </p>
             ) : adegas.length === 0 ? (
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-slate-500">
                 Nenhuma adega cadastrada ainda.
                 Clique em <span className="font-semibold">Nova Adega</span>{" "}
                 para cadastrar a primeira.
@@ -257,7 +260,7 @@ export default function AdegasPage() {
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800 text-xs uppercase text-zinc-400">
+                    <tr className="border-b border-slate-200 text-xs uppercase text-slate-500">
                       <th className="px-3 py-2">Nome</th>
                       <th className="px-3 py-2">CNPJ</th>
                       <th className="px-3 py-2">Telefone</th>
@@ -274,15 +277,15 @@ export default function AdegasPage() {
                     {adegas.map((a) => (
                       <tr
                         key={a.id}
-                        className="border-b border-zinc-900/60 last:border-none hover:bg-zinc-900/40"
+                        className="border-b border-slate-200/60 last:border-none hover:bg-slate-50/40"
                       >
-                        <td className="px-3 py-2 text-sm font-medium text-zinc-100">
+                        <td className="px-3 py-2 text-sm font-medium text-slate-900">
                           {a.nome}
                         </td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">{a.cnpj}</td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">{a.telefone}</td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">{a.whatsapp_numero}</td>
-                        <td className="px-3 py-2 text-xs text-zinc-300">{a.email}</td>
+                        <td className="px-3 py-2 text-xs text-slate-700">{a.cnpj}</td>
+                        <td className="px-3 py-2 text-xs text-slate-700">{a.telefone}</td>
+                        <td className="px-3 py-2 text-xs text-slate-700">{a.whatsapp_numero}</td>
+                        <td className="px-3 py-2 text-xs text-slate-700">{a.email}</td>
 
                         <td className="px-3 py-2 text-center text-xs">
                           {a.notificacao_ativa ? (
@@ -290,7 +293,7 @@ export default function AdegasPage() {
                               Ativa
                             </span>
                           ) : (
-                            <span className="rounded-full bg-zinc-700/40 px-2 py-1 text-[11px] font-medium text-zinc-300">
+                            <span className="rounded-full bg-zinc-700/40 px-2 py-1 text-[11px] font-medium text-slate-700">
                               Desativada
                             </span>
                           )}
@@ -301,7 +304,7 @@ export default function AdegasPage() {
                           <button
                             type="button"
                             onClick={() => router.push(`/adegas/${a.id}/editar`)}
-                            className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-100 hover:bg-zinc-800"
+                            className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-900 hover:bg-slate-100"
                           >
                             Editar
                           </button>
@@ -315,10 +318,11 @@ export default function AdegasPage() {
           </div>
         </main>
 
-        <footer className="mt-8 border-t border-zinc-800 pt-4 text-center text-xs text-zinc-500">
+        <footer className="mt-8 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">
           Painel de gestão de adegas • Apenas perfil Master
         </footer>
       </div>
     </div>
+    </AdegaPageShell>
   );
 }

@@ -50,6 +50,8 @@ function getAdegaIdFromLocalStorage(): number | null {
   }
 }
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function EditarClientePage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -201,13 +203,13 @@ export default function EditarClientePage() {
   }
 
   if (loading) {
-    return <p className="p-4 text-zinc-200">Carregando cliente...</p>;
+    return <p className="p-4 text-slate-700">Carregando cliente...</p>;
   }
 
   if (!isAdminOrManager) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-6">
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           Você não tem permissão para editar clientes.
         </div>
         <button
@@ -222,13 +224,14 @@ export default function EditarClientePage() {
   }
 
   return (
+    <AdegaPageShell title="Editar cliente" subtitle="Painel de gestão">
     <main className="mx-auto max-w-3xl px-4 py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">
             {adegaNome || "Minha Adega"} - Editar Cliente
           </h1>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-slate-500">
             Olá, {userName} ({perfilNome})
           </p>
         </div>
@@ -254,22 +257,22 @@ export default function EditarClientePage() {
       </div>
 
       {erro && (
-        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {erro}
         </div>
       )}
       {okMsg && (
-        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700">
           {okMsg}
         </div>
       )}
 
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <div className="grid gap-3 md:grid-cols-2">
           <div className="md:col-span-2">
-            <label className="text-xs text-zinc-400">Nome *</label>
+            <label className="text-xs text-slate-500">Nome *</label>
             <input
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-300"
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700"
               value={form.nome ?? ""}
               onChange={(e) =>
                 setForm((p) => ({ ...p, nome: e.target.value }))
@@ -278,9 +281,9 @@ export default function EditarClientePage() {
           </div>
 
           <div>
-            <label className="text-xs text-zinc-400">E-mail</label>
+            <label className="text-xs text-slate-500">E-mail</label>
             <input
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-100"
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900"
               value={form.email ?? ""}
               onChange={(e) =>
                 setForm((p) => ({ ...p, email: e.target.value }))
@@ -289,9 +292,9 @@ export default function EditarClientePage() {
           </div>
 
           <div>
-            <label className="text-xs text-zinc-400">Telefone</label>
+            <label className="text-xs text-slate-500">Telefone</label>
             <input
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-300"
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700"
               value={form.telefone ?? ""}
               onChange={(e) =>
                 setForm((p) => ({ ...p, telefone: e.target.value }))
@@ -300,9 +303,9 @@ export default function EditarClientePage() {
           </div>
 
           <div className="md:col-span-2">
-            <label className="text-xs text-zinc-400">Observações</label>
+            <label className="text-xs text-slate-500">Observações</label>
             <textarea
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-zinc-300"
+              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700"
               value={form.observacoes ?? ""}
               onChange={(e) =>
                 setForm((p) => ({ ...p, observacoes: e.target.value }))
@@ -320,12 +323,13 @@ export default function EditarClientePage() {
                 setForm((p) => ({ ...p, eh_whatsapp: e.target.checked }))
               }
             />
-            <label htmlFor="eh_whatsapp" className="text-sm text-zinc-300">
+            <label htmlFor="eh_whatsapp" className="text-sm text-slate-700">
               É WhatsApp?
             </label>
           </div>
         </div>
       </div>
     </main>
+    </AdegaPageShell>
   );
 }

@@ -17,6 +17,8 @@ interface Adega {
   notificacao_ativa: boolean;
 }
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function EditarAdegaPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -157,16 +159,16 @@ export default function EditarAdegaPage() {
 
   if (permissaoNegada) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-zinc-100 px-4">
-        <div className="max-w-md rounded-2xl border border-red-600/60 bg-red-900/20 p-6 text-center">
-          <h1 className="mb-2 text-lg font-semibold text-red-200">Acesso negado</h1>
-          <p className="mb-4 text-sm text-red-100">
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-900 px-4">
+        <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+          <h1 className="mb-2 text-lg font-semibold text-red-700">Acesso negado</h1>
+          <p className="mb-4 text-sm text-red-700">
             Somente o perfil <span className="font-semibold">Master</span> pode editar adegas.
           </p>
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-medium uppercase tracking-wide text-zinc-100 hover:bg-zinc-800"
+            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-slate-900 hover:bg-slate-100"
           >
             Voltar para o início
           </button>
@@ -176,80 +178,81 @@ export default function EditarAdegaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-zinc-50">
+    <AdegaPageShell title="Editar adega" subtitle="Painel de gestão">
+    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-slate-900">
       <div className="mx-auto max-w-3xl px-4 py-6 md:px-8">
         <header className="mb-6 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold tracking-wide">Editar Adega</h1>
-            <p className="text-xs text-zinc-400">ID: {adegaId}</p>
+            <p className="text-xs text-slate-500">ID: {adegaId}</p>
           </div>
 
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => router.push("/adegas")}
-              className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-100 hover:bg-zinc-800"
+              className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-900 hover:bg-slate-100"
             >
               Voltar
             </button>
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-100 hover:bg-zinc-800"
+              className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-900 hover:bg-slate-100"
             >
               Sair
             </button>
           </div>
         </header>
 
-        <main className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-5 shadow-lg shadow-black/40">
+        <main className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-lg shadow-black/40">
           {loading ? (
-            <p className="text-sm text-zinc-400">Carregando...</p>
+            <p className="text-sm text-slate-500">Carregando...</p>
           ) : (
             <>
               {erro && (
-                <div className="mb-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                <div className="mb-3 rounded-lg border border-red-500/40 bg-red-50 px-3 py-2 text-sm text-red-700">
                   {erro}
                 </div>
               )}
               {okMsg && (
-                <div className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+                <div className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
                   {okMsg}
                 </div>
               )}
 
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="text-xs text-zinc-400">Nome</label>
+                  <label className="text-xs text-slate-500">Nome</label>
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={form.nome}
                     onChange={(e) => setForm({ ...form, nome: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-zinc-400">CNPJ</label>
+                  <label className="text-xs text-slate-500">CNPJ</label>
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={form.cnpj}
                     onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-zinc-400">Telefone</label>
+                  <label className="text-xs text-slate-500">Telefone</label>
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={form.telefone}
                     onChange={(e) => setForm({ ...form, telefone: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-zinc-400">WhatsApp</label>
+                  <label className="text-xs text-slate-500">WhatsApp</label>
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={form.whatsapp_numero}
                     onChange={(e) =>
                       setForm({ ...form, whatsapp_numero: e.target.value })
@@ -258,19 +261,19 @@ export default function EditarAdegaPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="text-xs text-zinc-400">E-mail</label>
+                  <label className="text-xs text-slate-500">E-mail</label>
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="text-xs text-zinc-400">TextMeBot API Key</label>
+                  <label className="text-xs text-slate-500">TextMeBot API Key</label>
 
                   <input
-                    className="mt-1 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={form.textmebot_api_key ?? ""}
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, textmebot_api_key: e.target.value }))
@@ -287,7 +290,7 @@ export default function EditarAdegaPage() {
                       setForm({ ...form, notificacao_ativa: e.target.checked })
                     }
                   />
-                  <label htmlFor="notif" className="text-sm text-zinc-300">
+                  <label htmlFor="notif" className="text-sm text-slate-700">
                     Notificação ativa
                   </label>
                 </div>
@@ -297,7 +300,7 @@ export default function EditarAdegaPage() {
                 <button
                   type="button"
                   onClick={() => router.push("/adegas")}
-                  className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-100 hover:bg-zinc-800"
+                  className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-900 hover:bg-slate-100"
                   disabled={salvando}
                 >
                   Cancelar
@@ -317,5 +320,6 @@ export default function EditarAdegaPage() {
         </main>
       </div>
     </div>
+    </AdegaPageShell>
   );
 }

@@ -11,6 +11,8 @@ type Produto = {
   nome: string;
 };
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function CadastrarEstoquePage() {
   const router = useRouter();
 
@@ -137,19 +139,20 @@ export default function CadastrarEstoquePage() {
   }
 
   return (
+    <AdegaPageShell title="Nova entrada de estoque" subtitle="Painel de gestão">
     <main className="mx-auto max-w-xl px-4 py-6">
-      {/* <h1 className="text-2xl font-bold text-amber-300">
+      {/* <h1 className="text-2xl font-bold text-orange-700">
         {adegaNome || "Minha Adega"} - Nova entrada de estoque
       </h1> */}
       <header className="mb-4">
         <h1 className="text-xl font-semibold">
           {adegaNome || "Minha Adega"} - Nova entrada de estoque
         </h1>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-slate-500">
           Olá, {userName} ({perfilNome})
         </p>
       </header>
-      <p className="mb-6 text-sm text-zinc-400">
+      <p className="mb-6 text-sm text-slate-500">
         Preencha os dados da nova entrada de estoque.
       </p>
 
@@ -157,25 +160,25 @@ export default function CadastrarEstoquePage() {
         <button
           type="button"
           onClick={() => router.push("/estoque")}
-          className="rounded-xl border border-zinc-700 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-200 hover:bg-zinc-900/60 transition"
+          className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-700 hover:bg-slate-50 transition"
         >
           ← Voltar
         </button>
       </div>
 
       {erro && (
-        <div className="mb-4 rounded-xl border border-red-700 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {erro}
         </div>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950/70 p-6"
+        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6"
       >
         {/* SELECT DE PRODUTOS */}
         <div>
-          <label className="mb-1 block text-sm text-zinc-300">
+          <label className="mb-1 block text-sm text-slate-700">
             Produto *
           </label>
           <select
@@ -183,7 +186,7 @@ export default function CadastrarEstoquePage() {
             onChange={(e) => setProdutoId(e.target.value)}
             required
             disabled={loadingProdutos}
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:opacity-60"
           >
             <option value="">
               {loadingProdutos ? "Carregando produtos..." : "Selecione um produto"}
@@ -197,7 +200,7 @@ export default function CadastrarEstoquePage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-zinc-300">
+          <label className="mb-1 block text-sm text-slate-700">
             Quantidade *
           </label>
           <input
@@ -205,31 +208,31 @@ export default function CadastrarEstoquePage() {
             value={quantidade}
             onChange={(e) => setQuantidade(e.target.value)}
             required
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm text-zinc-300">
+          <label className="mb-1 block text-sm text-slate-700">
             Mínimo Alerta
           </label>
           <input
             value={minimo_alerta}
             onChange={(e) => setMinimo(e.target.value)}
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-sm text-zinc-300">
+            <label className="mb-1 block text-sm text-slate-700">
               Data de entrada
             </label>
             <input
               type="date"
               value={criado_em}
               onChange={(e) => setDataEntrada(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-amber-400"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
             />
           </div>
 
@@ -239,7 +242,7 @@ export default function CadastrarEstoquePage() {
           <button
             type="button"
             onClick={() => router.push("/estoque")}
-            className="rounded-xl border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900/60"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
           >
             Cancelar
           </button>
@@ -247,12 +250,13 @@ export default function CadastrarEstoquePage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-400 disabled:opacity-60"
+            className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
           >
             {loading ? "Salvando..." : "Salvar entrada"}
           </button>
         </div>
       </form>
     </main>
+    </AdegaPageShell>
   );
 }

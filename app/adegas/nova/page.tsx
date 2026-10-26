@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { NovaAdegaPayload } from "@/types/adega";
 import { postComAuth } from "@/lib/api";
 
+import AdegaPageShell from "@/components/AdegaPageShell";
+
 export default function NovaAdegaPage() {
   const router = useRouter();
 
@@ -62,23 +64,24 @@ export default function NovaAdegaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-xl rounded-2xl bg-zinc-900/80 border border-zinc-800 p-6 shadow-lg">
+    <AdegaPageShell title="Cadastrar adega" subtitle="Painel de gestão">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-xl rounded-2xl bg-slate-50/80 border border-slate-200 p-6 shadow-lg">
         <h1 className="text-2xl font-semibold mb-4 text-center">
           Cadastrar Adega
         </h1>
-        <p className="text-sm text-zinc-400 mb-6 text-center">
+        <p className="text-sm text-slate-500 mb-6 text-center">
           Preencha os dados abaixo para cadastrar uma nova adega.
         </p>
 
         {erro && (
-          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-50 px-3 py-2 text-sm text-red-700">
             {erro}
           </div>
         )}
 
         {sucesso && (
-          <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+          <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
             {sucesso}
           </div>
         )}
@@ -99,7 +102,7 @@ export default function NovaAdegaPage() {
               required
               value={form.nome}
               onChange={handleChange}
-              className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
               placeholder="Digite o nome da Adega"
             />
           </div>
@@ -119,7 +122,7 @@ export default function NovaAdegaPage() {
               required
               value={form.cnpj}
               onChange={handleChange}
-              className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
               placeholder="Digite o CNPJ "
             />
           </div>
@@ -139,7 +142,7 @@ export default function NovaAdegaPage() {
               required
               value={form.telefone}
               onChange={handleChange}
-              className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
               placeholder="Digite o Telefone da Adega"
             />
           </div>
@@ -159,7 +162,7 @@ export default function NovaAdegaPage() {
               required
               value={form.email}
               onChange={handleChange}
-              className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
               placeholder="Digite um e-mail de contato"
             />
           </div>
@@ -179,10 +182,10 @@ export default function NovaAdegaPage() {
               required
               value={form.whatsapp_numero}
               onChange={handleChange}
-              className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
               placeholder="Digite um número de WhatsApp válido"
             />
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-slate-500">
               Use o formato internacional com DDI. Ex: +5511999995555
             </p>
           </div>
@@ -194,7 +197,7 @@ export default function NovaAdegaPage() {
               className="block text-sm font-medium mb-1"
             >
               TextMeBot API Key{" "}
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-slate-500">
                 (opcional)
               </span>
             </label>
@@ -204,7 +207,7 @@ export default function NovaAdegaPage() {
               type="text"
               value={form.textmebot_api_key}
               onChange={handleChange}
-              className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:ring-1 focus:ring-orange-200"
               placeholder="Chave da API do TextMeBot"
             />
           </div>
@@ -217,11 +220,11 @@ export default function NovaAdegaPage() {
               type="checkbox"
               checked={form.notificacao_ativa}
               onChange={handleChange}
-              className="h-4 w-4 rounded border-zinc-600 bg-zinc-900 text-amber-400 focus:ring-amber-400"
+              className="h-4 w-4 rounded border-slate-300 bg-slate-50 text-amber-400 focus:ring-orange-200"
             />
             <label
               htmlFor="notificacao_ativa"
-              className="text-sm text-zinc-200"
+              className="text-sm text-slate-700"
             >
               Ativar notificações para esta adega
             </label>
@@ -232,7 +235,7 @@ export default function NovaAdegaPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-100 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-200"
             >
               Voltar
             </button>
@@ -240,7 +243,7 @@ export default function NovaAdegaPage() {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-orange-200"
             >
               {loading ? "Salvando..." : "Salvar Adega"}
             </button>
@@ -248,5 +251,6 @@ export default function NovaAdegaPage() {
         </form>
       </div>
     </div>
+    </AdegaPageShell>
   );
 }
