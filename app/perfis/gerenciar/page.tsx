@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { obterUsuarioAtual, limparSessao } from "@/lib/auth";
+import { obterUsuarioAtual } from "@/lib/auth";
 
 import {
   listarAdegas,
@@ -55,7 +55,7 @@ export default function GerenciarPerfisPage() {
       ? []
       : perfis.filter((p) => p.adega_id === Number(form.adega_id));
 
-  const { user, userName } = useAuth();
+  const { userName } = useAuth();
   const router = useRouter();
 
   // 🔒 Só MASTER pode acessar
@@ -73,7 +73,6 @@ export default function GerenciarPerfisPage() {
     perfilNome = perfilBruto.nome ?? perfilBruto.descricao ?? "";
   }
 
-  console.log("Valores de perfil : " + perfilNome)
 
   if (
     !["master", "administrador imbebi"].includes(
@@ -87,7 +86,7 @@ export default function GerenciarPerfisPage() {
             Acesso restrito
           </h1>
           <p className="text-sm text-slate-700">
-            Apenas o usuário <span className="font-semibold">master</span> pode gerenciar perfis.
+            Apenas administradores da plataforma podem gerenciar perfis.
           </p>
           <button
             onClick={() => router.push("/")}
@@ -213,35 +212,35 @@ export default function GerenciarPerfisPage() {
 
   return (
     <AdegaPageShell title="Gerenciar perfis" subtitle="Painel de gestão">
-    <div className="min-h-screen bg-gradient-to-b from-amber-950 via-zinc-950 to-black text-slate-900">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8">
+    <div className="w-full text-slate-900">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-1 py-2 sm:px-3">
         <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Gerenciar Perfis por Adega
             </h1>
             <p className="text-sm text-slate-500">
-              Olá, {userName} (master)
+              Olá, {userName}. Cadastre perfis e defina permissões por adega.
             </p>
           </div>
           <Link
             href="/"
-            className="rounded-full border border-amber-500/40 bg-orange-50 px-4 py-1.5 text-xs font-medium text-amber-100 transition hover:bg-amber-800/50"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
             ← Home
           </Link>
         </header>
 
-        <main className="flex flex-1 flex-col gap-6 lg:flex-row">
+        <main className="flex flex-1 flex-col items-start gap-6 lg:flex-row">
           {/* FORM */}
-          <section className="lg:w-1/3">
-            <div className="rounded-2xl border border-amber-900/60 bg-slate-50 p-4 shadow-lg shadow-black/40">
-              <h2 className="mb-3 text-lg font-semibold">
+          <section className="w-full lg:w-2/5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="mb-4 text-lg font-semibold text-slate-900">
                 {form.idEditando ? "Editar perfil" : "Novo perfil"}
               </h2>
 
               {erro && (
-                <p className="mb-2 text-sm text-red-400">{erro}</p>
+                <p className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{erro}</p>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-3 text-sm">
@@ -260,7 +259,7 @@ export default function GerenciarPerfisPage() {
                         setPerfis([]);
                       }
                     }}
-                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                   >
                     <option value="">Selecione uma adega</option>
                     {adegas.map((a) => (
@@ -281,7 +280,7 @@ export default function GerenciarPerfisPage() {
                     onChange={(e) =>
                       handleChangeField("nome", e.target.value)
                     }
-                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                     required
                   />
                 </div>
@@ -295,12 +294,12 @@ export default function GerenciarPerfisPage() {
                     onChange={(e) =>
                       handleChangeField("descricao", e.target.value)
                     }
-                    className="h-20 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-amber-500"
+                    className="h-24 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                   />
                 </div>
 
                 {/* permissões */}
-                <fieldset className="space-y-1 rounded-md border border-slate-200 px-3 py-2">
+                <fieldset className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
                   <legend className="px-1 text-xs text-slate-500">
                     Permissões
                   </legend>
@@ -312,7 +311,7 @@ export default function GerenciarPerfisPage() {
                       onChange={(e) =>
                         handleChangeField("eh_admin", e.target.checked)
                       }
-                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
+                      className="h-4 w-4 rounded border-slate-300 accent-orange-600"
                     />
                     É administrador da adega
                   </label>
@@ -327,7 +326,7 @@ export default function GerenciarPerfisPage() {
                           e.target.checked
                         )
                       }
-                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
+                      className="h-4 w-4 rounded border-slate-300 accent-orange-600"
                     />
                     Pode gerenciar usuários
                   </label>
@@ -342,7 +341,7 @@ export default function GerenciarPerfisPage() {
                           e.target.checked
                         )
                       }
-                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
+                      className="h-4 w-4 rounded border-slate-300 accent-orange-600"
                     />
                     Pode gerenciar estoque
                   </label>
@@ -357,7 +356,7 @@ export default function GerenciarPerfisPage() {
                           e.target.checked
                         )
                       }
-                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
+                      className="h-4 w-4 rounded border-slate-300 accent-orange-600"
                     />
                     Pode gerenciar clientes
                   </label>
@@ -369,7 +368,7 @@ export default function GerenciarPerfisPage() {
                       onChange={(e) =>
                         handleChangeField("ativo", e.target.checked)
                       }
-                      className="h-3 w-3 rounded border-slate-300 bg-slate-50"
+                      className="h-4 w-4 rounded border-slate-300 accent-orange-600"
                     />
                     Ativo
                   </label>
@@ -379,7 +378,7 @@ export default function GerenciarPerfisPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex-1 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {saving
                       ? "Salvando..."
@@ -391,7 +390,7 @@ export default function GerenciarPerfisPage() {
                     <button
                       type="button"
                       onClick={limparFormulario}
-                      className="rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-900 transition hover:bg-slate-100/70"
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                       Cancelar
                     </button>
@@ -402,8 +401,8 @@ export default function GerenciarPerfisPage() {
           </section>
 
           {/* LISTA */}
-          <section className="lg:w-2/3">
-            <div className="rounded-2xl border border-amber-900/60 bg-slate-50 p-4 shadow-lg shadow-black/40">
+          <section className="w-full lg:w-3/5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
                   Perfis da adega selecionada
@@ -433,7 +432,7 @@ export default function GerenciarPerfisPage() {
                   {perfisFiltrados.map((p) => (
                     <div
                       key={p.id}
-                      className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-orange-200 hover:bg-orange-50/30 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div>
                         <div className="flex items-center gap-2">
@@ -442,12 +441,12 @@ export default function GerenciarPerfisPage() {
                           </span>
                           <span className="font-semibold">{p.nome}</span>
                           {!p.ativo && (
-                            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-slate-700">
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
                               Inativo
                             </span>
                           )}
                           {p.eh_admin && (
-                            <span className="rounded-full bg-amber-700/70 px-2 py-0.5 text-[10px] uppercase tracking-wide text-amber-50">
+                            <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-orange-700">
                               Admin
                             </span>
                           )}
@@ -463,14 +462,14 @@ export default function GerenciarPerfisPage() {
                         <button
                           type="button"
                           onClick={() => iniciarEdicao(p)}
-                          className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-100/80"
+                          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
                         >
                           Editar
                         </button>
                         <button
                           type="button"
                           onClick={() => handleExcluir(p.id)}
-                          className="rounded-full border border-red-600/70 px-3 py-1 text-[11px] font-semibold text-red-700 transition hover:bg-red-900/50"
+                          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                         >
                           Excluir
                         </button>
