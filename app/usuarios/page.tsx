@@ -139,6 +139,7 @@ export default function ListaUsuariosPage() {
 
   // Render principal
   return (
+    <AdegaPageShell title="Usuários" subtitle="Painel de gestão">
     <div className="text-slate-900">
       <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">
         {/* Cabeçalho */}
@@ -211,7 +212,6 @@ export default function ListaUsuariosPage() {
                   {usuarios.map((u) => {
                     const perfilNome = u.perfil?.nome ?? "(sem perfil)";
                     return (
-    <AdegaPageShell title="Usuários" subtitle="Painel de gestão">
                       <tr
                         key={u.id}
                         className="border-b border-slate-200/80 hover:bg-slate-50/40"
