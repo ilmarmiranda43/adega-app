@@ -90,7 +90,7 @@ export default function AdministracaoPage() {
     evento.preventDefault(); setErro(""); setSucesso("");
     try {
       setSalvando(true);
-      const criada = await requisicao<Adega>("/adegas/", {
+      const criada = await requisicao<Adega>("/gestao/adegas", {
         method: "POST", body: JSON.stringify({ nome: novaAdega.trim(), notificacao_ativa: false }),
       });
       setAdegas(await requisicao<Adega[]>("/gestao/adegas"));
@@ -107,7 +107,7 @@ export default function AdministracaoPage() {
       setSalvando(true);
       const admin = novoPerfil === "Admin";
       const gerente = novoPerfil === "Gerente";
-      await requisicao<Perfil>("/perfis/", { method: "POST", body: JSON.stringify({
+      await requisicao<Perfil>("/gestao/perfis", { method: "POST", body: JSON.stringify({
         adega_id: adegaId, nome: novoPerfil, descricao: novoPerfil,
         eh_admin: admin, pode_gerenciar_usuarios: admin || gerente,
         pode_gerenciar_estoque: admin || gerente,
