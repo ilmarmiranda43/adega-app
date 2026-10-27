@@ -25,7 +25,7 @@ export default function AdegaPageShell({
   const { userName, perfilNome, adegaNome } = useAuth();
 
   const role = (perfilNome ?? "").trim().toLowerCase();
-  const isManager = ["admin", "administrador", "administrador imbebi", "gerente", "master"].includes(role);
+  const isManager = ["admin", "administrador", "administrador imbebi", "gerente", "master", "superadmin"].includes(role);
   const isMaster = ["master", "superadmin", "administrador imbebi"].includes(role);
 
   const sections: MenuSection[] = [
@@ -44,12 +44,13 @@ export default function AdegaPageShell({
     sections.push({
       title: "Gerenciamento",
       items: [
+        // Primeiro item para facilitar a localização no menu e o teste do deploy.
+        { label: "Administração", href: "/administracao", icon: "⚙" },
         { label: "Gerenciar produtos", href: "/produtos/gerenciar", icon: "▦" },
         { label: "Categorias", href: "/produtos/categorias", icon: "◫" },
         { label: "Estoque", href: "/estoque", icon: "◈" },
         { label: "Usuários", href: "/usuarios", icon: "♙" },
         { label: "Cadastrar usuário", href: "/usuarios/cadastrar", icon: "+" },
-        { label: "Administração", href: "/administracao", icon: "⚙" },
         ...(!isStaging ? [{ label: "Débitos", href: "/debitos", icon: "▤" }] : []),
       ],
     });

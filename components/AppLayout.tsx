@@ -99,14 +99,16 @@ export default function AppLayout({
           <span className="block text-xs text-slate-500">Painel de gestão</span>
         </span>
       </Link>
-      <NavSections sections={sections} pathname={pathname} close={() => setMenuOpen(false)} />
-      <p className="mt-auto border-t border-slate-100 pt-5 text-xs text-slate-400">IMBEBI Tec · Gestão de adegas</p>
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <NavSections sections={sections} pathname={pathname} close={() => setMenuOpen(false)} />
+      </div>
+      <p className="mt-4 border-t border-slate-100 pt-3 text-[11px] text-slate-400">IMBEBI Tec · Menu v2026.10.27.2</p>
     </>
   );
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 lg:flex">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-6 lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white px-4 py-6 lg:flex">
         {navigation}
       </aside>
 
@@ -122,7 +124,7 @@ export default function AppLayout({
         id="mobile-navigation"
         aria-label="Menu mobile"
         aria-hidden={!menuOpen}
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-y-auto bg-white p-5 shadow-xl transition-transform lg:hidden ${menuOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-hidden bg-white p-5 shadow-xl transition-transform lg:hidden ${menuOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"}`}
       >
         <button type="button" onClick={() => setMenuOpen(false)} className="mb-5 self-end rounded-lg border border-slate-200 px-3 py-1.5 text-sm">Fechar ✕</button>
         {navigation}
