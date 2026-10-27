@@ -40,33 +40,63 @@ export default function CadastroUsuarioPage() {
 
   const adegaId = user?.adega_id;
 
-  // 1) Verificar permissão
+  // 1) Verificar permissões armazenadas na sessão e no AuthContext.
+  // Esta verificação é apenas visual: a API continua responsável por autorizar.
   useEffect(() => {
     const usuarioAtual = obterUsuarioAtual();
-    if (!usuarioAtual) {
+    if (!usuarioAtual && !user) {
       router.replace("/login");
       return;
     }
 
-    // pega o "perfil cru" vindo da sessão (pode ser string ou objeto)
-    const perfilBruto = (usuarioAtual as any)?.perfil;
+    type Sessao = {
+      perfil?: string | {
+        nome?: string;
+        ativo?: boolean;
+        eh_admin?: boolean;
+        pode_gerenciar_usuarios?: boolean;
+      } | null;
+      perfil_nome?: string;
+      eh_admin?: boolean;
+      pode_gerenciar_usuarios?: boolean;
+    };
 
-    const perfilNome =
-      typeof perfilBruto === "string"
-        ? perfilBruto
-        : perfilBruto?.nome;
+    const atual = (usuarioAtual ?? {}) as Sessao;
+    const contexto = (user ?? {}) as Sessao;
+    const perfilSessao = typeof atual.perfil === "object" ? atual.perfil : null;
+    const perfilContexto = typeof contexto.perfil === "object" ? contexto.perfil : null;
 
-    const perfilNormalizado = (perfilNome || "").toLowerCase();
+    const normalizar = (valor: unknown) =>
+      typeof valor === "string"
+        ? valor.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        : "";
 
-    if (perfilNormalizado === "administrador" || perfilNormalizado === "admin"
-      || perfilNormalizado === "gerente" || perfilNormalizado === "master") {
-      setAutorizado(true);
-    } else {
-      setAutorizado(false);
-    }
+    const nomes = [
+      typeof atual.perfil === "string" ? atual.perfil : perfilSessao?.nome,
+      atual.perfil_nome,
+      typeof contexto.perfil === "string" ? contexto.perfil : perfilContexto?.nome,
+      contexto.perfil_nome,
+      perfilNome,
+    ];
 
+    const nomePermitido = nomes.some((nome) =>
+      ["admin", "administrador", "gerente", "master"].includes(normalizar(nome))
+    );
+    const permissaoExplicita = [
+      atual.eh_admin,
+      atual.pode_gerenciar_usuarios,
+      perfilSessao?.eh_admin,
+      perfilSessao?.pode_gerenciar_usuarios,
+      contexto.eh_admin,
+      contexto.pode_gerenciar_usuarios,
+      perfilContexto?.eh_admin,
+      perfilContexto?.pode_gerenciar_usuarios,
+    ].some((valor) => valor === true);
+
+    const perfilInativo = perfilSessao?.ativo === false || perfilContexto?.ativo === false;
+    setAutorizado(!perfilInativo && (nomePermitido || permissaoExplicita));
     setVerificandoPermissao(false);
-  }, [router]);
+  }, [router, user, perfilNome]);
 
   // 2) Carrega perfis só se estiver autorizado
 
@@ -129,6 +159,11 @@ export default function CadastroUsuarioPage() {
     setErro(null);
     setSucesso(null);
 
+    if (!autorizado || adegaId == null) {
+      setErro("Não foi possível validar sua adega e suas permissões. Faça login novamente.");
+      return;
+    }
+
     if (!perfilId) {
       setErro("Selecione um perfil para o usuário.");
       return;
@@ -145,7 +180,6 @@ export default function CadastroUsuarioPage() {
     }
 
     const token = obterToken();
-    console.log("O token é: " + token)
     if (!token) {
       setErro("Sessão expirada. Faça login novamente.");
       router.replace("/login");
@@ -174,21 +208,20 @@ export default function CadastroUsuarioPage() {
         const txt = await resp.text();
         console.error("Erro ao cadastrar usuário:", resp.status, txt);
 
-        // tenta extrair mensagem amigável se veio JSON
+        let mensagem = "Não foi possível cadastrar o usuário.";
         try {
           const json = JSON.parse(txt);
           if (json?.detail) {
-            throw new Error(
-              typeof json.detail === "string"
-                ? json.detail
-                : JSON.stringify(json.detail)
-            );
+            mensagem = typeof json.detail === "string"
+              ? json.detail
+              : JSON.stringify(json.detail);
           }
         } catch {
-          // ignora erro de parse, usa mensagem padrão
+          // O servidor pode responder sem JSON.
         }
-
-        throw new Error("Não foi possível cadastrar o usuário.");
+        if (resp.status === 401) mensagem = "Sessão inválida ou expirada. Faça login novamente.";
+        if (resp.status === 403) mensagem = "A API não autorizou seu usuário a cadastrar usuários nesta adega.";
+        throw new Error(mensagem);
       }
 
       const data = await resp.json();
