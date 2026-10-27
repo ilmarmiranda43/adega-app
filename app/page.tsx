@@ -76,8 +76,8 @@ export default function Home() {
     router.replace("/login");
   }
 
-  const role = perfil.toLowerCase();
-  const isManager = ["administrador", "admin", "gerente", "master"].includes(role);
+  const role = perfil.trim().toLowerCase();
+  const isManager = ["administrador", "admin", "administrador imbebi", "gerente", "master", "superadmin"].includes(role);
   // Controle visual apenas. Autorização efetiva permanece obrigatória no backend.
   const isMaster = [
     "master",
@@ -101,6 +101,7 @@ export default function Home() {
       { label: "Estoque", href: "/estoque", icon: "◈" },
       { label: "Usuários", href: "/usuarios", icon: "♙" },
       { label: "Cadastrar usuário", href: "/usuarios/cadastrar", icon: "+" },
+      { label: "Administração", href: "/administracao", icon: "⚙" },
       ...(!isStaging ? [{ label: "Débitos", href: "/debitos", icon: "▤" }] : []),
     ]
   });
