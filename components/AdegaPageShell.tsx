@@ -8,44 +8,79 @@ import type { ReactNode } from "react";
 
 const isStaging = (process.env.NEXT_PUBLIC_API_URL ?? "").includes("adega-app-api-teste");
 
+type AdegaPageShellProps = {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  headerAction?: ReactNode;
+};
+
 export default function AdegaPageShell({
-  title, subtitle, children, headerAction,
-}: { title: string; subtitle?: string; children: ReactNode; headerAction?: ReactNode }) {
+  title,
+  subtitle,
+  children,
+  headerAction,
+}: AdegaPageShellProps) {
   const router = useRouter();
   const { userName, perfilNome, adegaNome } = useAuth();
+
   const role = (perfilNome ?? "").trim().toLowerCase();
   const isManager = ["admin", "administrador", "administrador imbebi", "gerente", "master"].includes(role);
   const isMaster = ["master", "superadmin", "administrador imbebi"].includes(role);
-  const sections: MenuSection[] = [
-    { title: "Principal", items: [
-      { label: "Início", href: "/", icon: "⌂" },
-      { label: "Produtos", href: "/produtos", icon: "▣" },
-      { label: "Clientes", href: "/clientes", icon: "♧" },
-      { label: "Pedidos", href: "/pedidos", icon: "▤" },
-    ] },
-  ];
-  if (isManager) sections.push({ title: "Gerenciamento", items: [
-    { label: "Gerenciar produtos", href: "/produtos/gerenciar", icon: "▦" },
-    { label: "Categorias", href: "/produtos/categorias", icon: "◫" },
-    { label: "Estoque", href: "/estoque", icon: "◈" },
-    { label: "Usuários", href: "/usuarios", icon: "♙" },
-    { label: "Cadastrar usuário", href: "/usuarios/cadastrar", icon: "+" },
-    ...(!isStaging ? [{ label: "Débitos", href: "/debitos", icon: "▤" }] : []),
-  ] });
-  if (isMaster) sections.push({ title: "Plataforma", items: [
-    { label: "Adegas", href: "/adegas", icon: "▥" },
-    { label: "Cadastrar adega", href: "/adegas/nova", icon: "+" },
-    { label: "Gerenciar perfis", href: "/perfis/gerenciar", icon: "⚙" },
-  ] });
 
-  return <AppLayout
-    title={title}
-    subtitle={subtitle}
-    adegaNome={adegaNome || "Minha Adega"}
-    usuarioNome={userName || "Usuário"}
-    usuarioPerfil={perfilNome || ""}
-    sections={sections}
-    onLogout={() => { limparSessao(); router.replace("/login"); }}
-    headerAction={headerAction}
-  >{children}</AppLayout>;
+  const sections: MenuSection[] = [
+    {
+      title: "Principal",
+      items: [
+        { label: "Início", href: "/", icon: "⌂" },
+        { label: "Produtos", href: "/produtos", icon: "▣" },
+        { label: "Clientes", href: "/clientes", icon: "♧" },
+        { label: "Pedidos", href: "/pedidos", icon: "▤" },
+      ],
+    },
+  ];
+
+  if (isManager) {
+    sections.push({
+      title: "Gerenciamento",
+      items: [
+        { label: "Gerenciar produtos", href: "/produtos/gerenciar", icon: "▦" },
+        { label: "Categorias", href: "/produtos/categorias", icon: "◫" },
+        { label: "Estoque", href: "/estoque", icon: "◈" },
+        { label: "Usuários", href: "/usuarios", icon: "♙" },
+        { label: "Cadastrar usuário", href: "/usuarios/cadastrar", icon: "+" },
+        { label: "Administração", href: "/administracao", icon: "⚙" },
+        ...(!isStaging ? [{ label: "Débitos", href: "/debitos", icon: "▤" }] : []),
+      ],
+    });
+  }
+
+  if (isMaster) {
+    sections.push({
+      title: "Plataforma",
+      items: [
+        { label: "Adegas", href: "/adegas", icon: "▥" },
+        { label: "Cadastrar adega", href: "/adegas/nova", icon: "+" },
+        { label: "Gerenciar perfis", href: "/perfis/gerenciar", icon: "⚙" },
+      ],
+    });
+  }
+
+  return (
+    <AppLayout
+      title={title}
+      subtitle={subtitle}
+      adegaNome={adegaNome || "Minha Adega"}
+      usuarioNome={userName || "Usuário"}
+      usuarioPerfil={perfilNome || ""}
+      sections={sections}
+      onLogout={() => {
+        limparSessao();
+        router.replace("/login");
+      }}
+      headerAction={headerAction}
+    >
+      {children}
+    </AppLayout>
+  );
 }
