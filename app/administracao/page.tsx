@@ -9,6 +9,7 @@ type Adega = { id: number; nome: string };
 type Perfil = { id: number; nome: string; ativo: boolean; eh_admin: boolean };
 type Usuario = { id: number; nome: string; email: string; perfil_id: number };
 type Acesso = { usuario_id: number; adega_id: number; master: boolean };
+type Trial = { adega_id: number; ativo: boolean; dias: number; iniciado_em: string | null; termina_em: string | null; status: "ativo" | "expirado" | "desativado" };
 
 async function requisicao<T>(rota: string, opcoes: RequestInit = {}): Promise<T> {
   const token = obterToken();
@@ -43,6 +44,12 @@ export default function AdministracaoPage() {
   const [perfilId, setPerfilId] = useState("");
   const [novaAdega, setNovaAdega] = useState("");
   const [novoPerfil, setNovoPerfil] = useState("Admin");
+  const [trial, setTrial] = useState<Trial | null>(null);
+  const [trialAtivo, setTrialAtivo] = useState(false);
+  const [trialDias, setTrialDias] = useState(7);
+  const [trialCarregando, setTrialCarregando] = useState(false);
+  const [trialSalvando, setTrialSalvando] = useState(false);
+  const [reiniciarTrial, setReiniciarTrial] = useState(false);
 
   useEffect(() => {
     let ativo = true;
@@ -70,6 +77,38 @@ export default function AdministracaoPage() {
       .catch((e) => { if (ativo) { setPerfis([]); setUsuarios([]); setErro(e.message); } });
     return () => { ativo = false; };
   }, [adegaId]);
+
+  useEffect(() => {
+    if (!acesso?.master || adegaId === null) {
+      setTrial(null);
+      return;
+    }
+    let valido = true;
+    setTrial(null); setTrialCarregando(true); setReiniciarTrial(false);
+    requisicao<Trial>(`/gestao/adegas/${adegaId}/trial`)
+      .then(t => { if (valido) { setTrial(t); setTrialAtivo(t.ativo); setTrialDias(t.dias); } })
+      .catch(e => { if (valido) setErro(e instanceof Error ? e.message : "Falha ao carregar trial."); })
+      .finally(() => { if (valido) setTrialCarregando(false); });
+    return () => { valido = false; };
+  }, [acesso?.master, adegaId]);
+
+  async function salvarTrial(evento: React.FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    if (!acesso?.master || adegaId === null || !trial || trialSalvando) return;
+    if (!Number.isInteger(trialDias) || trialDias < 1 || trialDias > 365) {
+      setErro("Informe uma duração entre 1 e 365 dias."); return;
+    }
+    if (reiniciarTrial && !window.confirm("Reiniciar o prazo de trial desta adega a partir de hoje?")) return;
+    setErro(""); setSucesso(""); setTrialSalvando(true);
+    try {
+      const atualizado = await requisicao<Trial>(`/gestao/adegas/${adegaId}/trial`, {
+        method: "PUT", body: JSON.stringify({ ativo: trialAtivo, dias: trialDias, reiniciar: reiniciarTrial }),
+      });
+      setTrial(atualizado); setReiniciarTrial(false);
+      setSucesso(`Trial da adega ${adegaId} atualizado.`);
+    } catch (e) { setErro(e instanceof Error ? e.message : "Falha ao salvar trial."); }
+    finally { setTrialSalvando(false); }
+  }
 
   async function cadastrar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault(); setErro(""); setSucesso("");
@@ -139,6 +178,24 @@ export default function AdministracaoPage() {
             </select>
             <p className="mt-2 text-xs text-slate-500">{acesso.master ? "Acesso global habilitado." : "Seu acesso está limitado à sua adega."}</p>
           </section>
+          {acesso.master && adegaId !== null && <section className="rounded-2xl border bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold">Período de teste (Trial)</h2>
+            <p className="mt-1 text-sm text-slate-500">Configuração individual da adega selecionada. Alterar os dias não reinicia a contagem.</p>
+            {trialCarregando ? <p className="mt-3 text-sm">Carregando trial...</p> : trial ? <>
+              <div className="mt-3 text-sm text-slate-600">
+                Situação: <strong>{trial.status}</strong> · Início: {trial.iniciado_em ? new Date(trial.iniciado_em).toLocaleDateString("pt-BR") : "não iniciado"} · Término: {trial.termina_em ? new Date(trial.termina_em).toLocaleDateString("pt-BR") : "não definido"}
+              </div>
+              <form onSubmit={salvarTrial} className="mt-4 grid items-end gap-4 sm:grid-cols-2">
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={trialAtivo} onChange={e => setTrialAtivo(e.target.checked)} /> Habilitar trial</label>
+                <label className="text-sm">Duração em dias
+                  <input type="number" min={1} max={365} step={1} required className={`${campo} mt-1`} value={trialDias} onChange={e => setTrialDias(Number(e.target.value))} />
+                </label>
+                <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={reiniciarTrial} onChange={e => setReiniciarTrial(e.target.checked)} /> Reiniciar prazo a partir de hoje</label>
+                <div className="sm:col-span-2"><button type="submit" disabled={trialSalvando} className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{trialSalvando ? "Salvando..." : "Salvar configuração do trial"}</button></div>
+              </form>
+            </> : <p className="mt-3 text-sm text-slate-500">Não foi possível carregar a configuração desta adega.</p>}
+            <p className="mt-3 text-xs text-amber-800">A configuração será gravada no banco. A restrição de acesso após a expiração precisa ser integrada às rotas protegidas da API (instruções no README).</p>
+          </section>}
           {acesso.master && <div className="grid gap-5 md:grid-cols-2">
             <section className="rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 text-lg font-semibold">Cadastrar adega</h2>
